@@ -1,7 +1,7 @@
 # Intellij
 # .idea/
-*.iml
-*.iws
+# *.iml
+# *.iws
  
 # Mac
 .DS_Store
