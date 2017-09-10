@@ -60,7 +60,7 @@ class Specimen {
             data[i] = randomchar()
     }
 
-    fun crossover(pool: Array<Specimen>, crossoverfreq: Double, strategy: Int) {
+    fun crossover(pool: List<Specimen>, crossoverfreq: Double) {
         val mate = Specimen.pick(pool)
         for (i in 0 until data.size) if (random() < crossoverfreq)
             data[i] = mate.data[i]
@@ -74,12 +74,12 @@ class Specimen {
 
         private var wheel = LongArray(0)
 
-        fun computeWheel(arr: Array<Specimen>) {
+        fun computeWheel(arr: List<Specimen>) {
             var sum = 0L
             wheel = LongArray(arr.size, { i -> sum += arr[i].fitness; sum })
         }
 
-        fun pick(arr: Array<Specimen>): Specimen {
+        fun pick(arr: List<Specimen>): Specimen {
             val sum = wheel.last()
             val r = (random() * sum).toLong()
             var idx = wheel.binarySearch(r)
@@ -112,7 +112,7 @@ fun genetic() {
     val timeInSeconds = 40
 
     val colors = plotColors.keys
-    val selectionStrategy = listOf(1, 0)
+    val selectionStrategy = listOf(0)
     val poolsizes = linspace(10_000.0, 10_000.0, 1).toList()
     val crossoverProps = linspace(0.1, 0.9, 3)
     val crossoverFreqs = linspace(0.1, 0.9, 3).toList()
@@ -128,18 +128,18 @@ private fun geneticAlgorithm(poolsize: Int, targetString: IntArray, mutateProp: 
 
     // Algorithm go
     val starts = Instant.now()
-    var pool = Array(poolsize) { Specimen(targetString) }
+    var pool = List(poolsize) { Specimen(targetString) }
     while (Duration.between(starts, Instant.now()).seconds < timeInSeconds) {
         when (strategy) {
             0 -> {
                 Specimen.computeWheel(pool)
-                val poolList = pool.asList().parallelStream().map { Specimen.pick(pool) }.collect(Collectors.toList())
+                val poolList = pool.parallelStream().map { Specimen.pick(pool) }.collect(Collectors.toList())
                 poolList.parallelStream().forEach {
                     if (random() < crossoverProp) it.crossover(pool, crossoverFreq)
                     if (random() < mutateProp) it.mutate(mutateFreq)
                     it.computeFitness()
                 }
-                pool = poolList.toTypedArray()
+                pool = poolList
             }
         }
         mutateProp *= mutatePropDecay
