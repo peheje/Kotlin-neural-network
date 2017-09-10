@@ -83,9 +83,7 @@ class Specimen {
             val sum = wheel.last()
             val r = (random() * sum).toLong()
             var idx = wheel.binarySearch(r)
-            if (idx < 0) {
-                idx = -idx - 1
-            }
+            if (idx < 0) idx = -idx - 1
             return arr[idx].copy()
         }
     }
@@ -109,7 +107,7 @@ fun genetic() {
     val poolsize = 20_000         // Poolsize
 
     val plot = true
-    val timeInSeconds = 40
+    val timeInSeconds = 5
 
     val colors = plotColors.keys
     val selectionStrategy = listOf(0)
