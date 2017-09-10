@@ -107,7 +107,7 @@ fun genetic() {
     val poolsize = 20_000         // Poolsize
 
     val plot = true
-    val timeInSeconds = 5
+    val timeInSeconds = 40
 
     val colors = plotColors.keys
     val selectionStrategy = listOf(0)
@@ -154,7 +154,7 @@ private fun geneticAlgorithm(poolsize: Int, targetString: IntArray, mutateProp: 
     if (plot) {
         figure(1)
         plotArrays(x.toDoubleArray(), y.toDoubleArray(), color, lineLabel = "st: $strategy, cr-fr: ${crossoverFreq.format(3)}, cr-pr: ${crossoverProp.format(3)}")
-        xlabel("Seconds")
+        xlabel("Miliseconds")
         ylabel("Correct characters")
         title("Genetic algorithm")
     }
