@@ -39,7 +39,8 @@ class Specimen {
     }
 
     private fun calculateCorrect() {
-        nCorrect = data.indices.count { target[it] == data[it] }.toLong()
+        nCorrect = 0
+        for (i in 0 until data.size) if (target[i] == data[i]) nCorrect++
     }
 
     fun computeFitness() {
@@ -56,7 +57,7 @@ class Specimen {
     }
 
     fun mutate(mutatefreq: Double) {
-        for (i in data.indices) if (random() < mutatefreq)
+        for (i in 0 until data.size) if (random() < mutatefreq)
             data[i] = randomchar()
     }
 
@@ -107,7 +108,7 @@ fun genetic() {
     val poolsize = 20_000         // Poolsize
 
     val plot = true
-    val timeInSeconds = 20
+    val timeInSeconds = 40
 
     val colors = plotColors.keys
     val selectionStrategy = listOf(0)
