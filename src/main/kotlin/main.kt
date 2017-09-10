@@ -107,7 +107,7 @@ fun genetic() {
     val poolsize = 20_000         // Poolsize
 
     val plot = true
-    val timeInSeconds = 40
+    val timeInSeconds = 20
 
     val colors = plotColors.keys
     val selectionStrategy = listOf(0)
