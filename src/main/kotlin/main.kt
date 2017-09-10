@@ -1,9 +1,9 @@
 import koma.*
 import java.time.Duration
 import java.time.Instant
-import java.util.*
 import java.util.concurrent.ThreadLocalRandom
 import java.util.stream.Collectors
+
 fun Double.format(digits: Int) = java.lang.String.format("%.${digits}f", this)
 
 // BY peheje@github
@@ -29,7 +29,7 @@ class Specimen {
     constructor(target: IntArray) {
         this.target = target
         this.data = IntArray(target.size, { randomchar() })
-        calculateFitness()
+        computeFitness()
     }
 
     private constructor(characters: IntArray, fitness: Long, target: IntArray) {
@@ -42,7 +42,7 @@ class Specimen {
         nCorrect = data.indices.count { target[it] == data[it] }.toLong()
     }
 
-    fun calculateFitness() {
+    fun computeFitness() {
         calculateCorrect()
         fitness = nCorrect * nCorrect
     }
@@ -65,7 +65,6 @@ class Specimen {
             0 -> pool[(random() * pool.size).toInt()]
             else -> Specimen.pick(pool)
         }
-
         for (i in 0 until data.size) if (random() < crossoverfreq)
             data[i] = mate.data[i]
     }
@@ -75,6 +74,7 @@ class Specimen {
         private fun randomchar(): Int {
             return chars[(random() * chars.size).toInt()].toInt()
         }
+
         private var wheel = LongArray(0)
 
         fun computeWheel(arr: Array<Specimen>) {
@@ -103,19 +103,19 @@ fun genetic() {
     val mutatePropDecay = 0.9
     val mutateFreq = 0.04    // Prop that character will mutate
 
-    val crossoverProp = 0.48 // Prop that specimen will crossover
-    val crossoverFreq = 0.37 // Prop that character will crossover
+    val crossoverProp = 0.38 // Prop that specimen will crossover
+    val crossoverFreq = 0.27 // Prop that character will crossover
 
     // val target = stringToIntArray("to be or not to be that is the question")
-    val target = stringToIntArray("the time when the computer was a gray and tiresome box on the floor is a long time ago a longer time ago than far far away in a galaxy of the guardians")
-    //val target = stringToIntArray("the hazards of visiting this island were legendary it was not just the hostility of the best anchorage on the island nor the odd accidents known to befall ships and visitors the whole of the island was enshrouded in the peculiar magic of the others kennit had felt it tugging at him as he and gankis followed the path that led from deception cove to the treasure beach for a path seldom used its black gravel was miraculously clean of fallen leaves or intruding plant life about them the trees dripped the secondhand rain of last night's storm onto fern fronds already burdened with crystal drops")
-    val poolsize = 5_000         // Poolsize
+    // val target = stringToIntArray("the time when the computer was a gray and tiresome box on the floor is a long time ago a longer time ago than far far away in a galaxy of the guardians")
+    val target = stringToIntArray("the hazards of visiting this island were legendary it was not just the hostility of the best anchorage on the island nor the odd accidents known to befall ships and visitors the whole of the island was enshrouded in the peculiar magic of the others kennit had felt it tugging at him as he and gankis followed the path that led from deception cove to the treasure beach for a path seldom used its black gravel was miraculously clean of fallen leaves or intruding plant life about them the trees dripped the secondhand rain of last night's storm onto fern fronds already burdened with crystal drops")
+    val poolsize = 1_000         // Poolsize
 
     val plot = true
-    val timeInSeconds = 4
+    val timeInSeconds = 20
 
     val colors = plotColors.keys
-    val selectionStrategy = listOf(1, 0)
+    val selectionStrategy = listOf(0, 1)
     val poolsizes = linspace(10_000.0, 10_000.0, 1).toList()
     val crossoverProps = linspace(0.1, 0.9, 3)
     val crossoverFreqs = linspace(0.1, 0.9, 3).toList()
@@ -126,30 +126,21 @@ fun genetic() {
 private fun geneticAlgorithm(poolsize: Int, targetString: IntArray, mutateProp: Double, mutatePropDecay: Double, mutateFreq: Double, crossoverProp: Double, crossoverFreq: Double, plot: Boolean, color: String, timeInSeconds: Int, strategy: Int) {
     val x = mutableListOf<Double>()
     val y = mutableListOf<Double>()
-    var i = 0
+    var generation = 0
     var mutateProp = mutateProp
 
     // Algorithm go
     val starts = Instant.now()
     var pool = Array(poolsize) { Specimen(targetString) }
     while (Duration.between(starts, Instant.now()).seconds < timeInSeconds) {
-        Specimen.computeWheel(pool)
         when (strategy) {
-            0 -> {
-                val poolList = pool.asList().parallelStream().map { Specimen.pick(pool) }.collect(Collectors.toList())
-                poolList.parallelStream().forEach {
-                    if (random() < mutateProp) it.mutate(mutateFreq)
-                    if (random() < crossoverProp) it.crossover(pool, crossoverFreq, strategy)
-                    it.calculateFitness()
-                }
-                pool = poolList.toTypedArray()
-            }
             1 -> {
+                Specimen.computeWheel(pool)
                 val poolList = pool.asList().parallelStream().map { Specimen.pick(pool) }.collect(Collectors.toList())
                 poolList.parallelStream().forEach {
+                    if (random() < crossoverProp) it.crossover(pool, crossoverFreq, 0)
                     if (random() < mutateProp) it.mutate(mutateFreq)
-                    if (random() < crossoverProp) it.crossover(pool, crossoverFreq, strategy)
-                    it.calculateFitness()
+                    it.computeFitness()
                 }
                 pool = poolList.toTypedArray()
             }
@@ -157,7 +148,7 @@ private fun geneticAlgorithm(poolsize: Int, targetString: IntArray, mutateProp: 
         mutateProp *= mutatePropDecay
         // Algorithm end
 
-        if (i++ % 100 == 0) println("$i: " + pool.maxBy { it.fitness })
+        if (generation++ % 100 == 0) println("$generation: " + pool.maxBy { it.fitness })
         if (plot) {
             x.add(Duration.between(starts, Instant.now()).toMillis().toDouble())
             y.add(pool.maxBy { it.nCorrect }?.nCorrect?.toDouble() ?: 0.0)
@@ -174,6 +165,7 @@ private fun geneticAlgorithm(poolsize: Int, targetString: IntArray, mutateProp: 
     }
 }
 
+
 fun linspace(min: Double, max: Double, points: Int): DoubleArray {
     val d = DoubleArray(points)
     val step = (max - min) / (points - 1)
@@ -181,6 +173,11 @@ fun linspace(min: Double, max: Double, points: Int): DoubleArray {
         d[i] = min + i * step
     }
     return d
+}
+
+fun map(x: Double, originFrom: Double, originTo: Double, from: Double, to: Double): Double {
+    //Y = (X-A)/(B-A) * (D-C) + C
+    return (x - originFrom) / (originTo - originFrom) * (to - from) + from
 }
 
 fun softmax(x: DoubleArray): DoubleArray {
