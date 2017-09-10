@@ -1,0 +1,17 @@
+# Intellij
+.idea/
+*.iml
+*.iws
+ 
+# Mac
+.DS_Store
+ 
+# Maven
+log/
+target/
+
+# Compiled class file
+*.class
+
+# Log file
+*.log
