@@ -29,7 +29,7 @@ class Specimen {
 
     constructor(target: ByteArray) {
         this.target = target
-        this.data = ByteArray(target.size, { randomchar() })
+        this.data = ByteArray(target.size) { randomchar() }
         computeFitness()
     }
 
@@ -77,7 +77,7 @@ class Specimen {
 
         fun computeWheel(arr: List<Specimen>) {
             var sum = 0L
-            wheel = LongArray(arr.size, { i -> sum += arr[i].fitness; sum })
+            wheel = LongArray(arr.size) { i -> sum += arr[i].fitness; sum }
         }
 
         fun pick(arr: List<Specimen>): Specimen {
@@ -104,7 +104,7 @@ fun genetic() {
 
     // val target = stringToByteArray("to be or not to be that is the question")
     // val target = stringToByteArray("the time when the computer was a gray and tiresome box on the floor is a long time ago a longer time ago than far far away in a galaxy of the guardians")
-    val target = stringToByteArray("the hazards of visiting this island were legendary it was not just the hostility of the best anchorage on the island nor the odd accidents known to befall ships and visitors the whole of the island was enshrouded in the peculiar magic of the others kennit had felt it tugging at him as he and gankis followed the path that led from deception cove to the treasure beach for a path seldom used its black gravel was miraculously clean of fallen leaves or intruding plant life about them the trees dripped the secondhand rain of last night's storm onto fern fronds already burdened with crystal drops")
+    val target = stringToByteArray("the hazards of visiting this island were legendary it was not just the hostility of the best anchorage on the island nor the odd accidents known to befall ships and visitors the whole of the island was enshrouded in the peculiar magic of the others kennit had felt it tugging at him as he and gankis followed the path that led from deception cove to the treasure beach for a path seldom used its black gravel was miraculously clean of fallen leaves or intruding plant life about them the trees dripped the secondhand rain of last nights storm onto fern fronds already burdened with crystal drops")
     val poolsize = 10_000         // Poolsize
 
     val plot = true
