@@ -9,12 +9,12 @@ fun Double.format(digits: Int) = java.lang.String.format("%.${digits}f", this)
 // BY peheje@github
 // To run set settings.xml as your maven settings.xml (in file -> settings -> maven -> settings.xml (override)
 
-fun stringToIntArray(str: String): IntArray {
-    return IntArray(str.length, { i -> str[i].toInt() })
+fun stringToByteArray(str: String): ByteArray {
+    return kotlin.ByteArray(str.length) {i -> str[i].toByte()}
 }
 
-fun intArrayToString(ints: IntArray): String {
-    return Array(ints.size, { i -> ints[i].toChar() }).joinToString("")
+fun byteArrayToString(bytes: ByteArray): String {
+    return Array(bytes.size) { i -> bytes[i].toChar() }.joinToString ("")
 }
 
 fun random(): Double {
@@ -22,18 +22,18 @@ fun random(): Double {
 }
 
 class Specimen {
-    private var data = IntArray(0)
-    private var target = IntArray(0)
+    private var data = ByteArray(0)
+    private var target = ByteArray(0)
     var nCorrect: Long = 0
     var fitness: Long = 0
 
-    constructor(target: IntArray) {
+    constructor(target: ByteArray) {
         this.target = target
-        this.data = IntArray(target.size, { randomchar() })
+        this.data = ByteArray(target.size, { randomchar().toByte() })
         computeFitness()
     }
 
-    private constructor(characters: IntArray, fitness: Long, target: IntArray) {
+    private constructor(characters: ByteArray, fitness: Long, target: ByteArray) {
         this.data = characters
         this.fitness = fitness
         this.target = target
@@ -50,7 +50,7 @@ class Specimen {
     }
 
     override fun toString(): String {
-        return "Specimen(data='${intArrayToString(data)}' fitness=$fitness)"
+        return "Specimen(data='${byteArrayToString(data)}' fitness=$fitness)"
     }
 
     fun copy(): Specimen {
@@ -70,9 +70,8 @@ class Specimen {
 
     companion object {
         private val chars = ('a'..'z') + ' '
-        private fun randomchar(): Int {
-            return chars[(random() * chars.size).toInt()].toInt()
-        }
+
+        private fun randomchar(): Byte = chars[(random() * chars.size).toInt()].toByte()
 
         private var wheel = LongArray(0)
 
@@ -96,20 +95,20 @@ fun main(args: Array<String>) {
 }
 
 fun genetic() {
-    var mutateProp = 0.07    // Prop that specimen will mutate
+    val mutateProp = 0.07    // Prop that specimen will mutate
     val mutatePropDecay = 0.9
     val mutateFreq = 0.04    // Prop that character will mutate
 
     val crossoverProp = 0.48 // Prop that specimen will crossover
     val crossoverFreq = 0.37 // Prop that character will crossover
 
-    // val target = stringToIntArray("to be or not to be that is the question")
-    // val target = stringToIntArray("the time when the computer was a gray and tiresome box on the floor is a long time ago a longer time ago than far far away in a galaxy of the guardians")
-    val target = stringToIntArray("the hazards of visiting this island were legendary it was not just the hostility of the best anchorage on the island nor the odd accidents known to befall ships and visitors the whole of the island was enshrouded in the peculiar magic of the others kennit had felt it tugging at him as he and gankis followed the path that led from deception cove to the treasure beach for a path seldom used its black gravel was miraculously clean of fallen leaves or intruding plant life about them the trees dripped the secondhand rain of last night's storm onto fern fronds already burdened with crystal drops")
-    val poolsize = 20_000         // Poolsize
+    // val target = stringToByteArray("to be or not to be that is the question")
+    // val target = stringToByteArray("the time when the computer was a gray and tiresome box on the floor is a long time ago a longer time ago than far far away in a galaxy of the guardians")
+    val target = stringToByteArray("the hazards of visiting this island were legendary it was not just the hostility of the best anchorage on the island nor the odd accidents known to befall ships and visitors the whole of the island was enshrouded in the peculiar magic of the others kennit had felt it tugging at him as he and gankis followed the path that led from deception cove to the treasure beach for a path seldom used its black gravel was miraculously clean of fallen leaves or intruding plant life about them the trees dripped the secondhand rain of last night's storm onto fern fronds already burdened with crystal drops")
+    val poolsize = 5_000         // Poolsize
 
     val plot = true
-    val timeInSeconds = 40
+    val timeInSeconds = 20
 
     val colors = plotColors.keys
     val selectionStrategy = listOf(0)
@@ -120,7 +119,7 @@ fun genetic() {
         geneticAlgorithm(poolsize, target, mutateProp, mutatePropDecay, mutateFreq, crossoverProp, crossoverFreq, plot, color, timeInSeconds, strategy)
 }
 
-private fun geneticAlgorithm(poolsize: Int, targetString: IntArray, mutateProp: Double, mutatePropDecay: Double, mutateFreq: Double, crossoverProp: Double, crossoverFreq: Double, plot: Boolean, color: String, timeInSeconds: Int, strategy: Int) {
+private fun geneticAlgorithm(poolsize: Int, targetString: ByteArray, mutateProp: Double, mutatePropDecay: Double, mutateFreq: Double, crossoverProp: Double, crossoverFreq: Double, plot: Boolean, color: String, timeInSeconds: Int, strategy: Int) {
     val x = mutableListOf<Double>()
     val y = mutableListOf<Double>()
     var generation = 0
