@@ -39,13 +39,13 @@ class Specimen {
         this.target = target
     }
 
-    private fun calculateCorrect() {
+    private fun computeCorrect() {
         nCorrect = 0
         for (i in 0 until data.size) if (target[i] == data[i]) nCorrect++
     }
 
     fun computeFitness() {
-        calculateCorrect()
+        computeCorrect()
         fitness = nCorrect * nCorrect
     }
 
