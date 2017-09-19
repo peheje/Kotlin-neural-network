@@ -7,6 +7,7 @@ import java.util.stream.Collectors
 fun Double.format(digits: Int) = java.lang.String.format("%.${digits}f", this)
 
 // BY peheje@github
+// To run set settings.xml as your maven settings.xml (in file -> settings -> maven -> settings.xml (override)
 
 fun stringToIntArray(str: String): IntArray {
     return IntArray(str.length, { i -> str[i].toInt() })
