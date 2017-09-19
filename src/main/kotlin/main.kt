@@ -7,7 +7,7 @@ import java.util.stream.Collectors
 fun Double.format(digits: Int) = java.lang.String.format("%.${digits}f", this)
 
 // BY peheje@github
-// To run set settings.xml as your maven settings.xml (in file -> settings -> maven -> settings.xml (override)
+// To run set settings.xml as your maven settings.xml (in file -> settings -> maven -> settings.xml override in IntelliJ)
 
 fun stringToByteArray(str: String): ByteArray {
     return kotlin.ByteArray(str.length) {i -> str[i].toByte()}
@@ -29,7 +29,7 @@ class Specimen {
 
     constructor(target: ByteArray) {
         this.target = target
-        this.data = ByteArray(target.size, { randomchar().toByte() })
+        this.data = ByteArray(target.size, { randomchar() })
         computeFitness()
     }
 
@@ -69,7 +69,7 @@ class Specimen {
     }
 
     companion object {
-        private val chars = ('a'..'z') + ' '
+        private val chars = ('a'..'z') + ' ' // + '.' + ',' + ('A'..'Z') +
 
         private fun randomchar(): Byte = chars[(random() * chars.size).toInt()].toByte()
 
@@ -95,8 +95,8 @@ fun main(args: Array<String>) {
 }
 
 fun genetic() {
-    val mutateProp = 0.07    // Prop that specimen will mutate
-    val mutatePropDecay = 0.9
+    val mutateProp = 0.10    // Prop that specimen will mutate
+    val mutatePropDecay = 0.95
     val mutateFreq = 0.04    // Prop that character will mutate
 
     val crossoverProp = 0.48 // Prop that specimen will crossover
@@ -105,7 +105,7 @@ fun genetic() {
     // val target = stringToByteArray("to be or not to be that is the question")
     // val target = stringToByteArray("the time when the computer was a gray and tiresome box on the floor is a long time ago a longer time ago than far far away in a galaxy of the guardians")
     val target = stringToByteArray("the hazards of visiting this island were legendary it was not just the hostility of the best anchorage on the island nor the odd accidents known to befall ships and visitors the whole of the island was enshrouded in the peculiar magic of the others kennit had felt it tugging at him as he and gankis followed the path that led from deception cove to the treasure beach for a path seldom used its black gravel was miraculously clean of fallen leaves or intruding plant life about them the trees dripped the secondhand rain of last night's storm onto fern fronds already burdened with crystal drops")
-    val poolsize = 5_000         // Poolsize
+    val poolsize = 10_000         // Poolsize
 
     val plot = true
     val timeInSeconds = 20
