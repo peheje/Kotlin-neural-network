@@ -29,7 +29,7 @@ class Specimen {
 
     constructor(target: ByteArray) {
         this.target = target
-        this.data = ByteArray(target.size, { randomchar() })
+        this.data = ByteArray(target.size) { randomchar() }
         computeFitness()
     }
 
@@ -77,7 +77,7 @@ class Specimen {
 
         fun computeWheel(arr: List<Specimen>) {
             var sum = 0L
-            wheel = LongArray(arr.size, { i -> sum += arr[i].fitness; sum })
+            wheel = LongArray(arr.size) { i -> sum += arr[i].fitness; sum }
         }
 
         fun pick(arr: List<Specimen>): Specimen {
