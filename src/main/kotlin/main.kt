@@ -176,9 +176,3 @@ fun map(x: Double, originFrom: Double, originTo: Double, from: Double, to: Doubl
     return (x - originFrom) / (originTo - originFrom) * (to - from) + from
 }
 
-fun softmax(x: DoubleArray): DoubleArray {
-    val max = x.max() ?: 0.0
-    for (i in 0 until x.size) x[i] -= max
-    val sum = x.sumByDouble { Math.exp(it) }
-    return DoubleArray(x.size) { i -> Math.exp(x[i]) / sum }
-}
