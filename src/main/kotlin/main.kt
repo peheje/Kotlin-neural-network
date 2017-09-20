@@ -10,11 +10,11 @@ fun Double.format(digits: Int) = java.lang.String.format("%.${digits}f", this)
 // To run set settings.xml as your maven settings.xml (in file -> settings -> maven -> settings.xml override in IntelliJ)
 
 fun stringToByteArray(str: String): ByteArray {
-    return kotlin.ByteArray(str.length) {i -> str[i].toByte()}
+    return kotlin.ByteArray(str.length) { i -> str[i].toByte() }
 }
 
 fun byteArrayToString(bytes: ByteArray): String {
-    return Array(bytes.size) { i -> bytes[i].toChar() }.joinToString ("")
+    return Array(bytes.size) { i -> bytes[i].toChar() }.joinToString("")
 }
 
 fun random(): Double {
@@ -91,7 +91,25 @@ class Specimen {
 }
 
 fun main(args: Array<String>) {
-    genetic()
+    neural()
+}
+
+fun neural() {
+    val layers = arrayOf(
+            Layer(2, 4),
+            Layer(4, 8),
+            Layer(8, 4),
+            Layer(4, 2))
+    val net = Net(layers)
+    var loss = net.softmaxLoss(doubleArrayOf(1.0, 0.0), 0)
+    while (loss > 0.1) {
+        println(net.toString())
+        println(loss)
+        net.mutateAll(1.0)
+        loss = net.softmaxLoss(doubleArrayOf(1.0, 0.0), 0)
+        Thread.sleep(100)
+    }
+    println(loss)
 }
 
 fun genetic() {
