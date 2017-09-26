@@ -91,14 +91,61 @@ class Specimen {
 }
 
 fun main(args: Array<String>) {
-    neural2()
+    geneticNeural(100, 0.1, 0.99, 0.1, 0.1, 0.1, true, plotColors.keys.first(), 20, 0.1)
 }
+
+private fun geneticNeural(poolsize: Int, mutateProp: Double, mutatePropDecay: Double, mutateFreq: Double, crossoverProp: Double, crossoverFreq: Double, plot: Boolean, color: String, timeInSeconds: Int, crossoverRate: Double) {
+    val x = mutableListOf<Double>()
+    val y = mutableListOf<Double>()
+    var generation = 0
+    var mutateProp = mutateProp
+
+    val inputs = arrayOf(doubleArrayOf(1.0, 1.0), doubleArrayOf(1.0, 0.0), doubleArrayOf(0.0, 1.0), doubleArrayOf(0.0, 0.0))
+    val expectedOutputs = arrayOf(doubleArrayOf(0.0), doubleArrayOf(1.0), doubleArrayOf(1.0), doubleArrayOf(0.0))
+
+    // Algorithm go
+    val starts = Instant.now()
+    var pool = List(poolsize) { Net() }
+    while (Duration.between(starts, Instant.now()).seconds < timeInSeconds) {
+
+        Net.computeWheel(pool)
+        val poolList = pool.parallelStream().map { Net.pick(pool) }.collect(Collectors.toList())
+        poolList.parallelStream().forEach {
+            if (random() < crossoverProp) it.crossover(pool, crossoverFreq, crossoverRate)
+            if (random() < mutateProp) it.mutate(mutateFreq, mutateFreq)
+
+            val trainingIdx = (random() * inputs.size).toInt()
+            it.computeFitness(inputs[trainingIdx], expectedOutputs[trainingIdx])
+        }
+        pool = poolList
+
+    }
+    mutateProp *= mutatePropDecay
+    // Algorithm end
+
+    if (generation++ % 100 == 0) println("$generation: " + pool.maxBy { it.fitness })
+    if (plot) {
+        x.add(Duration.between(starts, Instant.now()).toMillis().toDouble())
+        y.add(pool.maxBy { it.fitness }?.fitness ?: 0.0)
+    }
+
+    println(pool.maxBy { it.fitness })
+
+    if (plot) {
+        figure(1)
+        plotArrays(x.toDoubleArray(), y.toDoubleArray(), color, lineLabel = "cr-fr: ${crossoverFreq.format(3)}, cr-pr: ${crossoverProp.format(3)}")
+        xlabel("Miliseconds")
+        ylabel("Correct characters")
+        title("Genetic algorithm")
+    }
+}
+
 
 fun neural2() {
     val l1Neurons = arrayOf(Neuron(doubleArrayOf(0.15, 0.20), 0.35),
-                            Neuron(doubleArrayOf(0.25, 0.30), 0.35))
+            Neuron(doubleArrayOf(0.25, 0.30), 0.35))
     val l2Neurons = arrayOf(Neuron(doubleArrayOf(0.40, 0.45), 0.60),
-                            Neuron(doubleArrayOf(0.50, 0.55), 0.60))
+            Neuron(doubleArrayOf(0.50, 0.55), 0.60))
     val layer1 = Layer(l1Neurons)
     val layer2 = Layer(l2Neurons)
     val net = Net(arrayOf(layer1, layer2))
@@ -111,24 +158,6 @@ fun neural2() {
 
     val error = net.error(input, target)
     println(error)
-}
-
-fun neural() {
-    val layers = arrayOf(
-            Layer(2, 4),
-            Layer(4, 8),
-            Layer(8, 4),
-            Layer(4, 2))
-    val net = Net(layers)
-    var loss = net.softmaxLoss(doubleArrayOf(1.0, 0.0), 0)
-    while (loss > 0.1) {
-        println(net.toString())
-        println(loss)
-        net.mutateAll(1.0)
-        loss = net.softmaxLoss(doubleArrayOf(1.0, 0.0), 0)
-        Thread.sleep(100)
-    }
-    println(loss)
 }
 
 fun genetic() {
