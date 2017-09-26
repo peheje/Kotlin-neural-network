@@ -8,18 +8,34 @@ import java.util.stream.Collectors
 // To run set settings.xml as your maven settings.xml (in file -> settings -> maven -> settings.xml override in IntelliJ)
 
 fun main(args: Array<String>) {
-    geneticNeural(
-            poolsize = 1000,
-            mutateProp = 0.2,
-            mutateFreq = 0.2,
-            mutatePropDecay = 0.999,
-            crossoverProp = 0.5,
-            crossoverFreq = 0.2,
-            crossoverRate = 0.1,
-            plot = true,
-            color = plotColors.keys.first(),
-            timeInSeconds = 10
-    )
+
+    val mutateProp = 0.35
+    val mutateFreq = 0.25
+    val poolsize = 5000
+
+    val mutateDecays = linspace(0.9, 0.999, 4)
+    val poolsizes = linspace(1000.toDouble(), 10_000.toDouble(), 5).toList()
+    val mutateProps = linspace(0.35, 0.35, 1).toList()
+    val mutateFreqs = linspace(0.25, 0.25, 1).toList()
+
+    for (mutateProp in mutateProps) {
+        for (mutateFreq in mutateFreqs) {
+            for ((color, poolsize) in plotColors.keys.zip(poolsizes)) {
+                geneticNeural(
+                        poolsize = poolsize.toInt(),
+                        mutateProp = mutateProp,
+                        mutateFreq = mutateFreq,
+                        mutatePropDecay = 0.995,
+                        crossoverProp = 0.1,
+                        crossoverFreq = 0.1,
+                        crossoverRate = 0.1,
+                        plot = true,
+                        color = color,
+                        timeInSeconds = 30
+                )
+            }
+        }
+    }
 }
 
 private fun geneticNeural(poolsize: Int,
@@ -35,6 +51,7 @@ private fun geneticNeural(poolsize: Int,
     val x = mutableListOf<Double>()
     val y = mutableListOf<Double>()
     var generation = 0
+    val origMutateProp = mutateProp
     var mutateProp = mutateProp
 
     // Learn XOR
@@ -68,7 +85,7 @@ private fun geneticNeural(poolsize: Int,
 
     if (plot) {
         figure(1)
-        plotArrays(x.toDoubleArray(), y.toDoubleArray(), color)
+        plotArrays(x.toDoubleArray(), y.toDoubleArray(), color, lineLabel = "mp $origMutateProp, mf $mutateFreq dec $mutatePropDecay size $poolsize")
         xlabel("Miliseconds")
         ylabel("Fitness")
         title("Genetic algorithm")

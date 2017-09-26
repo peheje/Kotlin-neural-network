@@ -26,14 +26,13 @@ class Net {
     }
 
     fun computeFitness(trainingXs: Array<DoubleArray>, trainingYs: Array<DoubleArray>) {
-        if (trainingXs.size != trainingYs.size) throw Exception("training does not match")
         val sumErr = (0 until trainingXs.size).sumByDouble { error(trainingXs[it], trainingYs[it]) }
         fitness = 1.0 / (sumErr + 1.0)
     }
 
     private fun error(input: DoubleArray, target: DoubleArray): Double {
         val netOutput = this(input)
-        return 0.5 * (0 until target.size).sumByDouble { Math.pow(target[it] - netOutput[it], 2.0) }
+        return (0 until target.size).sumByDouble { Math.pow(target[it] - netOutput[it], 2.0) }
     }
 
     operator fun invoke(inputs: DoubleArray): DoubleArray {
