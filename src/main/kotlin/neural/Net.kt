@@ -1,4 +1,4 @@
-package Neural
+package neural
 
 import random
 
@@ -10,26 +10,28 @@ class Net {
         this.layers = layers
     }
 
-    constructor() {
+    constructor(trainingXs: Array<DoubleArray>, trainingYs: Array<DoubleArray>) {
         // Standard size
         layers = arrayOf(
                 Layer(2, 4),
                 Layer(4, 8),
                 Layer(8, 4),
-                Layer(4, 2))
+                Layer(4, 1))
 
+        computeFitness(trainingXs, trainingYs)
     }
-
 
     private fun copy(): Net {
         return Net(Array(layers.size) { i -> layers[i].copy() })
     }
 
-    fun computeFitness(input: DoubleArray, target: DoubleArray) {
-        fitness = 1.0 / (error(input, target) + 1.0)
+    fun computeFitness(trainingXs: Array<DoubleArray>, trainingYs: Array<DoubleArray>) {
+        if (trainingXs.size != trainingYs.size) throw Exception("training does not match")
+        val sumErr = (0 until trainingXs.size).sumByDouble { error(trainingXs[it], trainingYs[it]) }
+        fitness = 1.0 / (sumErr + 1.0)
     }
 
-    fun error(input: DoubleArray, target: DoubleArray): Double {
+    private fun error(input: DoubleArray, target: DoubleArray): Double {
         val netOutput = this(input)
         return 0.5 * (0 until target.size).sumByDouble { Math.pow(target[it] - netOutput[it], 2.0) }
     }

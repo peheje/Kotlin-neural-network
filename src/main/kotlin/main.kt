@@ -1,4 +1,4 @@
-import Neural.Net
+import neural.Net
 import koma.*
 import java.time.Duration
 import java.time.Instant
@@ -8,52 +8,77 @@ import java.util.stream.Collectors
 // To run set settings.xml as your maven settings.xml (in file -> settings -> maven -> settings.xml override in IntelliJ)
 
 fun main(args: Array<String>) {
-    geneticNeural(100, 0.1, 0.99, 0.1, 0.1, 0.1, true, plotColors.keys.first(), 20, 0.1)
+    geneticNeural(
+            poolsize = 1000,
+            mutateProp = 0.2,
+            mutateFreq = 0.2,
+            mutatePropDecay = 0.999,
+            crossoverProp = 0.5,
+            crossoverFreq = 0.2,
+            crossoverRate = 0.1,
+            plot = true,
+            color = plotColors.keys.first(),
+            timeInSeconds = 10
+    )
 }
 
-private fun geneticNeural(poolsize: Int, mutateProp: Double, mutatePropDecay: Double, mutateFreq: Double, crossoverProp: Double, crossoverFreq: Double, plot: Boolean, color: String, timeInSeconds: Int, crossoverRate: Double) {
+private fun geneticNeural(poolsize: Int,
+                          mutateProp: Double,
+                          mutateFreq: Double,
+                          mutatePropDecay: Double,
+                          crossoverProp: Double,
+                          crossoverFreq: Double,
+                          crossoverRate: Double,
+                          plot: Boolean,
+                          color: String,
+                          timeInSeconds: Int) {
     val x = mutableListOf<Double>()
     val y = mutableListOf<Double>()
     var generation = 0
     var mutateProp = mutateProp
 
-    val inputs = arrayOf(doubleArrayOf(1.0, 1.0), doubleArrayOf(1.0, 0.0), doubleArrayOf(0.0, 1.0), doubleArrayOf(0.0, 0.0))
-    val expectedOutputs = arrayOf(doubleArrayOf(0.0), doubleArrayOf(1.0), doubleArrayOf(1.0), doubleArrayOf(0.0))
+    // Learn XOR
+    val trainingXs = arrayOf(doubleArrayOf(1.0, 1.0), doubleArrayOf(1.0, 0.0), doubleArrayOf(0.0, 1.0), doubleArrayOf(0.0, 0.0))
+    val trainingYs = arrayOf(doubleArrayOf(0.0), doubleArrayOf(1.0), doubleArrayOf(1.0), doubleArrayOf(0.0))
 
     // Algorithm go
     val starts = Instant.now()
-    var pool = List(poolsize) { Net() }
+    var pool = List(poolsize) { Net(trainingXs, trainingYs) }
     while (Duration.between(starts, Instant.now()).seconds < timeInSeconds) {
-
         Net.computeWheel(pool)
         val poolList = pool.parallelStream().map { Net.pick(pool) }.collect(Collectors.toList())
         poolList.parallelStream().forEach {
             if (random() < crossoverProp) it.crossover(pool, crossoverFreq, crossoverRate)
             if (random() < mutateProp) it.mutate(mutateFreq, mutateFreq)
-
-            val trainingIdx = (random() * inputs.size).toInt()
-            it.computeFitness(inputs[trainingIdx], expectedOutputs[trainingIdx])
+            it.computeFitness(trainingXs, trainingYs)
         }
         pool = poolList
+        mutateProp *= mutatePropDecay
+        // Algorithm end
 
+        if (generation++ % 100 == 0) println("$generation: " + pool.maxBy { it.fitness })
+        if (plot) {
+            x.add(Duration.between(starts, Instant.now()).toMillis().toDouble())
+            y.add(pool.maxBy { it.fitness }?.fitness ?: 0.0)
+        }
     }
-    mutateProp *= mutatePropDecay
-    // Algorithm end
 
-    if (generation++ % 100 == 0) println("$generation: " + pool.maxBy { it.fitness })
-    if (plot) {
-        x.add(Duration.between(starts, Instant.now()).toMillis().toDouble())
-        y.add(pool.maxBy { it.fitness }?.fitness ?: 0.0)
-    }
-
-    println(pool.maxBy { it.fitness })
+    val best = pool.maxBy { it.fitness }!!
+    println(best)
 
     if (plot) {
         figure(1)
-        plotArrays(x.toDoubleArray(), y.toDoubleArray(), color, lineLabel = "cr-fr: ${crossoverFreq.format(3)}, cr-pr: ${crossoverProp.format(3)}")
+        plotArrays(x.toDoubleArray(), y.toDoubleArray(), color)
         xlabel("Miliseconds")
-        ylabel("Correct characters")
+        ylabel("Fitness")
         title("Genetic algorithm")
+    }
+
+    // Test XOR
+    for ((i, x) in trainingXs.withIndex()) {
+        val neuralGuess = best(x)
+        val correct = trainingYs[i]
+        println("Net guessed ${neuralGuess.toList()} true was ${correct.toList()}")
     }
 }
 

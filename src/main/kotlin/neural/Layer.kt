@@ -1,4 +1,4 @@
-package Neural
+package neural
 
 class Layer {
     val neurons: Array<Neuron>

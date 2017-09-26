@@ -1,4 +1,6 @@
-package Neural
+package neural
+
+import random
 
 class Neuron {
     private var weights: DoubleArray
@@ -25,9 +27,11 @@ class Neuron {
     }
 
     fun mutate(mutateRate: Double, mutateFreq: Double) {
-        for (i in 0 until weights.size) if (random() < mutateFreq)
-            weights[i] += random(-mutateRate, mutateRate)
-        bias += random(-mutateRate, mutateRate)
+        for (i in 0 until weights.size)
+            if (random() < mutateFreq)
+                weights[i] += random(-mutateRate, mutateRate)
+        if (random() < mutateFreq)
+            bias += random(-mutateRate, mutateRate)
     }
 
     fun crossover(net: List<Net>, layerIdx: Int, neuronIdx: Int, crossoverRate: Double, crossoverFreq: Double) {
