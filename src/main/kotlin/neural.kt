@@ -13,8 +13,8 @@ class Neuron {
         this.bias = random(-1.0, 1.0)
     }
 
-    private constructor(weight: DoubleArray, bias: Double) {
-        this.weights = weight
+    constructor(weights: DoubleArray, bias: Double) {
+        this.weights = weights
         this.bias = bias
     }
 
@@ -24,7 +24,9 @@ class Neuron {
 
     operator fun invoke(inputs: DoubleArray): Double {
         val sum = (0 until inputs.size).sumByDouble { weights[it] * inputs[it] } + bias
-        return Math.tanh(sum)
+        val logistic = (1.0/(1.0+Math.exp(-sum)))
+        // println(" logistic(${inputs.toList()} * ${weights.toList()} + $bias) = $logistic")
+        return logistic
     }
 
     fun mutate(mutateRate: Double) {
@@ -57,7 +59,7 @@ class Layer {
         this.neurons = Array(size) { Neuron(previousInputSize) }
     }
 
-    private constructor(neurons: Array<Neuron>) {
+    constructor(neurons: Array<Neuron>) {
         this.size = neurons.size
         this.neurons = neurons
     }
@@ -74,10 +76,15 @@ class Layer {
 
 class Net(private val layers: Array<Layer>) {
 
-    private operator fun invoke(inputs: DoubleArray): DoubleArray {
+    operator fun invoke(inputs: DoubleArray): DoubleArray {
         var layerOutput: DoubleArray = inputs
         for (layer in layers) layerOutput = layer(layerOutput)
         return layerOutput
+    }
+
+    fun error(input: DoubleArray, target: DoubleArray): Double {
+        val netOutput = this(input)
+        return 0.5 * (0 until target.size).sumByDouble { Math.pow(target[it] - netOutput[it], 2.0) }
     }
 
     private fun softmax(netOutput: DoubleArray): DoubleArray {
