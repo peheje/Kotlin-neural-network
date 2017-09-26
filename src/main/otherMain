@@ -1,0 +1,18 @@
+fun neural2() {
+    val l1Neurons = arrayOf(Neuron(doubleArrayOf(0.15, 0.20), 0.35),
+            Neuron(doubleArrayOf(0.25, 0.30), 0.35))
+    val l2Neurons = arrayOf(Neuron(doubleArrayOf(0.40, 0.45), 0.60),
+            Neuron(doubleArrayOf(0.50, 0.55), 0.60))
+    val layer1 = Layer(l1Neurons)
+    val layer2 = Layer(l2Neurons)
+    val net = Net(arrayOf(layer1, layer2))
+
+    val input = doubleArrayOf(0.05, 0.10)
+    val target = doubleArrayOf(0.01, 0.99)
+    val output = net(input)
+
+    println(output.toList())
+
+    val error = net.error(input, target)
+    println(error)
+}

@@ -1,94 +1,11 @@
+import Neural.Net
 import koma.*
 import java.time.Duration
 import java.time.Instant
-import java.util.concurrent.ThreadLocalRandom
 import java.util.stream.Collectors
-
-fun Double.format(digits: Int) = java.lang.String.format("%.${digits}f", this)
 
 // BY peheje@github
 // To run set settings.xml as your maven settings.xml (in file -> settings -> maven -> settings.xml override in IntelliJ)
-
-fun stringToByteArray(str: String): ByteArray {
-    return kotlin.ByteArray(str.length) { i -> str[i].toByte() }
-}
-
-fun byteArrayToString(bytes: ByteArray): String {
-    return Array(bytes.size) { i -> bytes[i].toChar() }.joinToString("")
-}
-
-fun random(): Double {
-    return ThreadLocalRandom.current().nextDouble()
-}
-
-class Specimen {
-    private var data = ByteArray(0)
-    private var target = ByteArray(0)
-    var nCorrect: Long = 0
-    var fitness: Long = 0
-
-    constructor(target: ByteArray) {
-        this.target = target
-        this.data = ByteArray(target.size) { randomchar() }
-        computeFitness()
-    }
-
-    private constructor(characters: ByteArray, fitness: Long, target: ByteArray) {
-        this.data = characters
-        this.fitness = fitness
-        this.target = target
-    }
-
-    private fun computeCorrect() {
-        nCorrect = 0
-        for (i in 0 until data.size) if (target[i] == data[i]) nCorrect++
-    }
-
-    fun computeFitness() {
-        computeCorrect()
-        fitness = nCorrect * nCorrect
-    }
-
-    override fun toString(): String {
-        return "Specimen(data='${byteArrayToString(data)}' fitness=$fitness)"
-    }
-
-    fun copy(): Specimen {
-        return Specimen(this.data.copyOf(), this.fitness, this.target)
-    }
-
-    fun mutate(mutatefreq: Double) {
-        for (i in 0 until data.size) if (random() < mutatefreq)
-            data[i] = randomchar()
-    }
-
-    fun crossover(pool: List<Specimen>, crossoverfreq: Double) {
-        val mate = Specimen.pick(pool)
-        for (i in 0 until data.size) if (random() < crossoverfreq)
-            data[i] = mate.data[i]
-    }
-
-    companion object {
-        private val chars = ('a'..'z') + ' ' // + '.' + ',' + ('A'..'Z') +
-
-        private fun randomchar(): Byte = chars[(random() * chars.size).toInt()].toByte()
-
-        private var wheel = LongArray(0)
-
-        fun computeWheel(arr: List<Specimen>) {
-            var sum = 0L
-            wheel = LongArray(arr.size) { i -> sum += arr[i].fitness; sum }
-        }
-
-        fun pick(arr: List<Specimen>): Specimen {
-            val sum = wheel.last()
-            val r = (random() * sum).toLong()
-            var idx = wheel.binarySearch(r)
-            if (idx < 0) idx = -idx - 1
-            return arr[idx].copy()
-        }
-    }
-}
 
 fun main(args: Array<String>) {
     geneticNeural(100, 0.1, 0.99, 0.1, 0.1, 0.1, true, plotColors.keys.first(), 20, 0.1)
@@ -140,26 +57,6 @@ private fun geneticNeural(poolsize: Int, mutateProp: Double, mutatePropDecay: Do
     }
 }
 
-
-fun neural2() {
-    val l1Neurons = arrayOf(Neuron(doubleArrayOf(0.15, 0.20), 0.35),
-            Neuron(doubleArrayOf(0.25, 0.30), 0.35))
-    val l2Neurons = arrayOf(Neuron(doubleArrayOf(0.40, 0.45), 0.60),
-            Neuron(doubleArrayOf(0.50, 0.55), 0.60))
-    val layer1 = Layer(l1Neurons)
-    val layer2 = Layer(l2Neurons)
-    val net = Net(arrayOf(layer1, layer2))
-
-    val input = doubleArrayOf(0.05, 0.10)
-    val target = doubleArrayOf(0.01, 0.99)
-    val output = net(input)
-
-    println(output.toList())
-
-    val error = net.error(input, target)
-    println(error)
-}
-
 fun genetic() {
     val mutateProp = 0.10    // Prop that specimen will mutate
     val mutatePropDecay = 0.95
@@ -181,6 +78,7 @@ fun genetic() {
     val poolsizes = linspace(10_000.0, 10_000.0, 1).toList()
     val crossoverProps = linspace(0.1, 0.9, 3)
     val crossoverFreqs = linspace(0.1, 0.9, 3).toList()
+
     for ((color, strategy) in colors.zip(selectionStrategy))
         geneticAlgorithm(poolsize, target, mutateProp, mutatePropDecay, mutateFreq, crossoverProp, crossoverFreq, plot, color, timeInSeconds, strategy)
 }
@@ -227,18 +125,4 @@ private fun geneticAlgorithm(poolsize: Int, targetString: ByteArray, mutateProp:
     }
 }
 
-
-fun linspace(min: Double, max: Double, points: Int): DoubleArray {
-    val d = DoubleArray(points)
-    val step = (max - min) / (points - 1)
-    for (i in 0 until points) {
-        d[i] = min + i * step
-    }
-    return d
-}
-
-fun map(x: Double, originFrom: Double, originTo: Double, from: Double, to: Double): Double {
-    //Y = (X-A)/(B-A) * (D-C) + C
-    return (x - originFrom) / (originTo - originFrom) * (to - from) + from
-}
 
