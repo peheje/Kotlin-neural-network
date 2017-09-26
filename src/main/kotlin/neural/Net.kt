@@ -15,10 +15,13 @@ class Net {
     constructor(trainingXs: Array<DoubleArray>, trainingYs: Array<DoubleArray>) {
         // Standard size
         layers = arrayOf(
-                Layer(2, 8),
-                Layer(8, 8),
-                Layer(8, 8),
-                Layer(8, 1))
+                Layer(2, 16),
+                Layer(16, 8),
+                Layer(8, 4),
+                Layer(4, 4),
+                Layer(4, 4),
+                Layer(4, 4),
+                Layer(4, 1))
 
         computeFitness(trainingXs, trainingYs)
     }
@@ -31,6 +34,7 @@ class Net {
 
         var trainingXs = trainingXs
         var trainingYs = trainingYs
+        var batchSize = Math.min(batchSize, trainingXs.size)
 
         if (batchSize != 0) {
             val batchXs = mutableListOf<DoubleArray>()
@@ -51,7 +55,7 @@ class Net {
         fitness = parentFitness * (1 - d) + myFitness
     }
 
-    private fun error(input: DoubleArray, target: DoubleArray): Double {
+    fun error(input: DoubleArray, target: DoubleArray): Double {
         val netOutput = this(input)
         return (0 until target.size).sumByDouble { Math.pow(target[it] - netOutput[it], 2.0) }
     }

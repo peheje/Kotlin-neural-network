@@ -41,7 +41,7 @@ fun main(args: Array<String>) {
                                 crossoverRate = crossoverRate,
                                 plot = true,
                                 color = color,
-                                timeInSeconds = 60*5
+                                timeInSeconds = 60
                         )
                     }
                 }
@@ -84,10 +84,11 @@ private fun geneticNeural(poolsize: Int,
     val trainingXsList = mutableListOf<DoubleArray>()
     val trainingYsList = mutableListOf<DoubleArray>()
 
-    for (i in 0 until 1000) {
-        val r = random(1.0, 100.0)
-        trainingXsList.add(doubleArrayOf(r))
-        trainingYsList.add(doubleArrayOf(Math.sin(r)/r))
+    var t = -10.0
+    while (t < 10.0) {
+        trainingXsList.add(doubleArrayOf(t))
+        trainingYsList.add(doubleArrayOf(Math.sin(t)/t))
+        t += 0.01
     }
 
     val trainingXs = trainingXsList.toTypedArray()
@@ -146,13 +147,11 @@ private fun geneticNeural(poolsize: Int,
     */
 
     // Test for mathematical
-    var i = 0.1
-    while (i < 10) {
-
+    var i = -10.1
+    while (i < 10.0) {
         val neuralGuess = best(doubleArrayOf(i))
         val correct = Math.sin(i)/i
-        println("Net guessed ${neuralGuess.toList()} true was ${correct}")
-
+        println("x: $i net: ${neuralGuess.toList()} true: ${correct}")
         i += 1.0
     }
 }
