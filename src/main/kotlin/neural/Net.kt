@@ -1,33 +1,54 @@
 package neural
 
 import random
+import java.util.concurrent.ThreadLocalRandom
 
 class Net {
     val layers: Array<Layer>
     var fitness: Double = 0.0
 
-    constructor(layers: Array<Layer>) {
+    constructor(layers: Array<Layer>, fitness: Double) {
         this.layers = layers
+        this.fitness = fitness
     }
 
     constructor(trainingXs: Array<DoubleArray>, trainingYs: Array<DoubleArray>) {
         // Standard size
         layers = arrayOf(
-                Layer(2, 4),
-                Layer(4, 8),
-                Layer(8, 4),
-                Layer(4, 1))
+                Layer(2, 8),
+                Layer(8, 8),
+                Layer(8, 8),
+                Layer(8, 1))
 
         computeFitness(trainingXs, trainingYs)
     }
 
     private fun copy(): Net {
-        return Net(Array(layers.size) { i -> layers[i].copy() })
+        return Net(Array(layers.size) { i -> layers[i].copy() }, fitness)
     }
 
-    fun computeFitness(trainingXs: Array<DoubleArray>, trainingYs: Array<DoubleArray>) {
+    fun computeFitness(trainingXs: Array<DoubleArray>, trainingYs: Array<DoubleArray>, batchSize: Int = 0) {
+
+        var trainingXs = trainingXs
+        var trainingYs = trainingYs
+
+        if (batchSize != 0) {
+            val batchXs = mutableListOf<DoubleArray>()
+            val batchYs = mutableListOf<DoubleArray>()
+            while (batchXs.size < batchSize) {
+                val r = ThreadLocalRandom.current().nextInt(trainingXs.size)
+                batchXs.add(trainingXs[r])
+                batchYs.add(trainingYs[r])
+            }
+            trainingXs = batchXs.toTypedArray()
+            trainingYs = batchYs.toTypedArray()
+        }
+
         val sumErr = (0 until trainingXs.size).sumByDouble { error(trainingXs[it], trainingYs[it]) }
-        fitness = 1.0 / (sumErr + 1.0)
+        val myFitness = 1.0 / (sumErr + 1.0)
+        val parentFitness = fitness
+        val d = 0.2
+        fitness = parentFitness * (1 - d) + myFitness
     }
 
     private fun error(input: DoubleArray, target: DoubleArray): Double {

@@ -18,6 +18,7 @@ fun random(from: Double, to: Double): Double {
 }
 
 fun linspace(min: Double, max: Double, points: Int): DoubleArray {
+    if (points == 1) return DoubleArray(1) { min }
     val d = DoubleArray(points)
     val step = (max - min) / (points - 1)
     for (i in 0 until points) {
