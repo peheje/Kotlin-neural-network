@@ -14,10 +14,12 @@ fun main(args: Array<String>) {
     val mutateRate = 0.40   // Should depend on training set relative size
     val crossoverProp = 0.02
     val crossoverRate = 0.4
-    val poolsize = 5000
+    val poolsize = 1000
 
     val mutatePropDecays = linspace(0.9, 0.999, 4)
     val poolsizes = linspace(poolsize.toDouble(), poolsize.toDouble(), 1).toList()
+    val parentInheritance = 0.1
+    val batchSize = 16
 
     val mutateRates = linspace(0.40, 0.40, 1).toList()
     val mutateProps = linspace(0.35, 0.35, 1).toList()
@@ -41,7 +43,9 @@ fun main(args: Array<String>) {
                                 crossoverRate = crossoverRate,
                                 plot = true,
                                 color = color,
-                                timeInSeconds = 60
+                                timeInSeconds = 60,
+                                parentInheritance = parentInheritance,
+                                batchSize = batchSize
                         )
                     }
                 }
@@ -60,7 +64,9 @@ private fun geneticNeural(poolsize: Int,
                           crossoverRate: Double,
                           plot: Boolean,
                           color: String,
-                          timeInSeconds: Int) {
+                          timeInSeconds: Int,
+                          parentInheritance: Double,
+                          batchSize: Int) {
     val x = mutableListOf<Double>()
     val y = mutableListOf<Double>()
     var generation = 0
@@ -96,14 +102,14 @@ private fun geneticNeural(poolsize: Int,
 
     // Algorithm go
     val starts = Instant.now()
-    var pool = List(poolsize) { Net(trainingXs, trainingYs) }
+    var pool = List(poolsize) { Net(trainingXs, trainingYs, parentInheritance) }
     while (Duration.between(starts, Instant.now()).seconds < timeInSeconds) {
         Net.computeWheel(pool)
         val poolList = pool.parallelStream().map { Net.pick(pool) }.collect(Collectors.toList())
         poolList.parallelStream().forEach {
             if (random() < crossoverProp) it.crossover(pool, crossoverFreq, crossoverRate)
             if (random() < mutateProp) it.mutate(mutateFreq, mutateRate)
-            it.computeFitness(trainingXs, trainingYs, 16)
+            it.computeFitness(trainingXs, trainingYs, parentInheritance, batchSize)
         }
         pool = poolList
         mutateProp *= mutatePropDecay
