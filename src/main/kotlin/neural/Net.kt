@@ -12,15 +12,8 @@ class Net {
         this.fitness = fitness
     }
 
-    constructor(trainingXs: Array<DoubleArray>, trainingYs: Array<DoubleArray>, parentInheritance: Double) {
-        // Standard size
-        layers = arrayOf(
-                Layer(2, 8),
-                Layer(8, 4),
-                Layer(4, 4),
-                Layer(4, 4),
-                Layer(4, 1))
-
+    constructor(trainingXs: Array<DoubleArray>, trainingYs: Array<DoubleArray>, layerSetup: List<Int>, parentInheritance: Double) {
+        layers = (0 until layerSetup.size - 1).map { Layer(layerSetup[it], layerSetup[it + 1]) }.toTypedArray()
         computeFitness(trainingXs, trainingYs, parentInheritance)
     }
 

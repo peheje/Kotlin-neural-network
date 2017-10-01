@@ -14,9 +14,10 @@ fun neuralNetworkRunner() {
     val mutateRate = 2.0
     val crossoverProp = 0.03
     val crossoverRate = 0.4
-    val poolsize = 4000L
-    val parentInheritance = 0.8
+    val poolsize = 10000L
+    val parentInheritance = 0.9
     val batchSize = 4
+    val layerSetup = arrayListOf(2, 8, 4, 1)
 
     //val mutateRates = linspace(0.40, 0.40, 1).toList()
     //val mutateProps = linspace(0.35, 0.35, 1).toList()
@@ -29,7 +30,7 @@ fun neuralNetworkRunner() {
         geneticNeural(
                 poolsize = poolsize,
                 mutateProp = mutateProp,
-                mutatePropDecay = 0.998,
+                mutatePropDecay = 0.9995,
                 mutateFreq = mutateFreq,
                 mutateRate = mutateRate,
                 mutateRateDecay = 0.9995,
@@ -40,7 +41,8 @@ fun neuralNetworkRunner() {
                 plot = true,
                 color = color,
                 timeInSeconds = 60,
-                strategy = 0
+                strategy = 0,
+                layerSetup = layerSetup
         )
     }
 }
@@ -59,7 +61,8 @@ private fun geneticNeural(poolsize: Long,
                           plot: Boolean,
                           color: String,
                           timeInSeconds: Int,
-                          strategy: Int) {
+                          strategy: Int,
+                          layerSetup: List<Int>) {
     val x = mutableListOf<Double>()
     val y = mutableListOf<Double>()
     var generation = 0
@@ -70,6 +73,7 @@ private fun geneticNeural(poolsize: Long,
 
     /*
     // Learn XOR
+    val trainingXs = arrayOf(doubleArrayOf(1.0, 1.0), doubleArrayOf(1.0, 0.0), doubleArrayOf(0.0, 1.0), doubleArrayOf(0.0, 0.0))
     val trainingXs = arrayOf(doubleArrayOf(1.0, 1.0), doubleArrayOf(1.0, 0.0), doubleArrayOf(0.0, 1.0), doubleArrayOf(0.0, 0.0))
     val trainingYs = arrayOf(doubleArrayOf(0.0), doubleArrayOf(1.0), doubleArrayOf(1.0), doubleArrayOf(0.0))
     */
@@ -87,7 +91,7 @@ private fun geneticNeural(poolsize: Long,
     while (t < 5.0) {
         trainingXsList.add(doubleArrayOf(t))
         if (t != 0.0)
-            trainingYsList.add(doubleArrayOf(Math.sin(t) / t))
+            trainingYsList.add(doubleArrayOf((Math.sin(t) / t) * 1.0))
         else
             trainingYsList.add(doubleArrayOf(1.0))
         t += 0.01
@@ -98,7 +102,7 @@ private fun geneticNeural(poolsize: Long,
 
     // Algorithm go
     val starts = Instant.now()
-    var pool = Stream.generate { Net(trainingXs, trainingYs, parentInheritance) }.parallel().limit(poolsize).collect(toList())
+    var pool = Stream.generate { Net(trainingXs, trainingYs, layerSetup, parentInheritance) }.parallel().limit(poolsize).collect(toList())
     while (Duration.between(starts, Instant.now()).seconds < timeInSeconds) {
         Net.computeWheel(pool)
         when (strategy) {
@@ -166,10 +170,10 @@ private fun geneticNeural(poolsize: Long,
     while (i < 5.0) {
         val neuralGuess = best(doubleArrayOf(i)).first()
         val correct = if (i != 0.0)
-            Math.sin(i) / i
+            (Math.sin(i) / i) * 1.0
         else
             1.0
-        println("x: $i net: ${neuralGuess} true: ${correct} diff: ${neuralGuess - correct}")
+        println("x: \t $i net: ${neuralGuess} \t true: ${correct} \t diff: ${neuralGuess - correct}")
         i += 0.5
     }
 }
