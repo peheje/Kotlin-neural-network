@@ -1,13 +1,31 @@
 package neural
 
 import koma.*
+import org.simpleflatmapper.csv.CsvParser
 import random
+import java.io.FileReader
 import java.time.Duration
 import java.time.Instant
+import java.util.*
 import java.util.stream.Collectors.toList
 import java.util.stream.Stream
+import java.util.Arrays
+
+
+
 
 fun neuralNetworkRunner() {
+
+    // Read iris data
+    val nameMap = mapOf("Iris-virginica" to 0.0, "Iris-versicolor" to 1.0, "Iris-setosa" to 3.0)
+    val xs = mutableListOf<DoubleArray>()
+    val ys = mutableListOf<DoubleArray>()
+    CsvParser.stream(FileReader("datasets/iris.data")).use { stream ->
+        stream.forEach { row ->
+            xs.add(DoubleArray(4) { i -> row[i].toDouble() })
+            ys.add(DoubleArray(1) { _ -> nameMap[row[4]]!! })
+        }
+    }
 
     val mutateProp = 0.35
     val mutateFreq = 0.25
