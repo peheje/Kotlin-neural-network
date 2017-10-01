@@ -11,7 +11,7 @@ fun neuralNetworkRunner() {
 
     val mutateProp = 0.35
     val mutateFreq = 0.25
-    val mutateRate = 2.0
+    val mutatePower = 2.0
     val crossoverProp = 0.03
     val crossoverRate = 0.4
     val poolsize = 10000L
@@ -19,7 +19,7 @@ fun neuralNetworkRunner() {
     val batchSize = 4
     val layerSetup = arrayListOf(2, 8, 4, 1)
 
-    //val mutateRates = linspace(0.40, 0.40, 1).toList()
+    //val mutatePowers = linspace(0.40, 0.40, 1).toList()
     //val mutateProps = linspace(0.35, 0.35, 1).toList()
     //val mutateFreqs = linspace(0.25, 0.25, 1).toList()
     //val crossoverRates = linspace(0.4, 0.4, 1).toList()
@@ -32,8 +32,8 @@ fun neuralNetworkRunner() {
                 mutateProp = mutateProp,
                 mutatePropDecay = 0.9995,
                 mutateFreq = mutateFreq,
-                mutateRate = mutateRate,
-                mutateRateDecay = 0.9995,
+                mutatePower = mutatePower,
+                mutatePowerDecay = 0.9995,
                 crossoverProp = crossoverProp,
                 crossoverRate = crossoverRate,
                 parentInheritance = parentInheritance,
@@ -52,8 +52,8 @@ private fun geneticNeural(poolsize: Long,
                           mutateProp: Double,
                           mutatePropDecay: Double,
                           mutateFreq: Double,
-                          mutateRate: Double,
-                          mutateRateDecay: Double,
+                          mutatePower: Double,
+                          mutatePowerDecay: Double,
                           crossoverProp: Double,
                           crossoverRate: Double,
                           parentInheritance: Double,
@@ -67,9 +67,9 @@ private fun geneticNeural(poolsize: Long,
     val y = mutableListOf<Double>()
     var generation = 0
     val origMutateProp = mutateProp
-    val origMutateRate = mutateRate
+    val origMutatePower = mutatePower
     var mutateProp = mutateProp
-    var mutateRate = mutateRate
+    var mutatePower = mutatePower
 
     /*
     // Learn XOR
@@ -110,12 +110,12 @@ private fun geneticNeural(poolsize: Long,
                 val nextGen = Stream.generate { Net.pick(pool) }.parallel().limit(poolsize).collect(toList())
                 nextGen.parallelStream().forEach {
                     if (random() < crossoverProp) it.crossover(pool, crossoverRate)
-                    if (random() < mutateProp) it.mutate(mutateFreq, mutateRate)
+                    if (random() < mutateProp) it.mutate(mutateFreq, mutatePower)
                     it.computeFitness(trainingXs, trainingYs, parentInheritance, batchSize)
                 }
                 pool = nextGen
-                if (mutateRate > 0.02)
-                    mutateRate *= mutateRateDecay
+                if (mutatePower > 0.02)
+                    mutatePower *= mutatePowerDecay
                 if (mutateProp > 0.10)
                     mutateProp *= mutatePropDecay
             }
@@ -127,7 +127,7 @@ private fun geneticNeural(poolsize: Long,
 
         if (generation++ % 100 == 0) {
             println("$generation: " + pool.maxBy { it.fitness })
-            println("mutateProp $mutateProp mutateRate $mutateRate")
+            println("mutateProp $mutateProp mutatePower $mutatePower")
         }
         if (plot) {
             x.add(Duration.between(starts, Instant.now()).toMillis().toDouble())
@@ -149,7 +149,7 @@ private fun geneticNeural(poolsize: Long,
                         " mf $mutateFreq" +
                         " mpd $mutatePropDecay" +
                         " ps $poolsize" +
-                        " mr $origMutateRate"
+                        " mp $origMutatePower"
         )
         xlabel("Miliseconds")
         ylabel("Fitness")

@@ -27,12 +27,12 @@ class Neuron {
         //return 1.0 / (1.0 + Math.exp(-sum)) // Sigmoid
     }
 
-    fun mutate(mutateRate: Double, mutateFreq: Double) {
+    fun mutate(mutatePower: Double, mutateFreq: Double) {
         for (i in 0 until weights.size)
             if (random() < mutateFreq)
-                weights[i] += random(-mutateRate, mutateRate)
+                weights[i] += random(-mutatePower, mutatePower)
         if (random() < mutateFreq)
-            bias += random(-mutateRate, mutateRate)
+            bias += random(-mutatePower, mutatePower)
     }
 
     fun crossover(net: List<Net>, layerIdx: Int, neuronIdx: Int, crossoverRate: Double) {

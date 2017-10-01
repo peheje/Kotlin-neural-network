@@ -87,10 +87,10 @@ class Net {
         }
     }
 
-    fun mutate(mutateFreq: Double, mutateRate: Double) {
+    fun mutate(mutateFreq: Double, mutatePower: Double) {
         for (layer in layers) {
             for (neuron in layer.neurons) {
-                neuron.mutate(mutateRate, mutateFreq)
+                neuron.mutate(mutatePower, mutateFreq)
             }
         }
     }
