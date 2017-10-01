@@ -15,10 +15,8 @@ class Net {
     constructor(trainingXs: Array<DoubleArray>, trainingYs: Array<DoubleArray>, parentInheritance: Double) {
         // Standard size
         layers = arrayOf(
-                Layer(2, 16),
-                Layer(16, 8),
+                Layer(2, 8),
                 Layer(8, 4),
-                Layer(4, 4),
                 Layer(4, 4),
                 Layer(4, 4),
                 Layer(4, 1))
@@ -34,7 +32,7 @@ class Net {
 
         var trainingXs = trainingXs
         var trainingYs = trainingYs
-        var batchSize = Math.min(batchSize, trainingXs.size)
+        val batchSize = Math.min(batchSize, trainingXs.size)
 
         if (batchSize != 0) {
             val batchXs = mutableListOf<DoubleArray>()
@@ -49,12 +47,12 @@ class Net {
         }
 
         val sumErr = (0 until trainingXs.size).sumByDouble { error(trainingXs[it], trainingYs[it]) }
-        val myFitness = 1.0 / (sumErr + 1.0)
+        val batchFitness = 1.0 / (sumErr + 1.0)
         val parentFitness = fitness
-        fitness = parentFitness * (1 - parentInheritance) + myFitness
+        fitness = parentFitness * parentInheritance + batchFitness
     }
 
-    fun error(input: DoubleArray, target: DoubleArray): Double {
+    private fun error(input: DoubleArray, target: DoubleArray): Double {
         val netOutput = this(input)
         return (0 until target.size).sumByDouble { Math.pow(target[it] - netOutput[it], 2.0) }
     }
@@ -88,17 +86,17 @@ class Net {
         return sb.toString()
     }
 
-    fun crossover(pool: List<Net>, crossoverFreq: Double, crossoverRate: Double) {
+    fun crossover(pool: List<Net>, crossoverRate: Double) {
         for ((layerIdx, layer) in layers.withIndex()) {
             for ((neuronIdx, neuron) in layer.neurons.withIndex()) {
-                neuron.crossover(pool, layerIdx, neuronIdx, crossoverRate, crossoverFreq)
+                neuron.crossover(pool, layerIdx, neuronIdx, crossoverRate)
             }
         }
     }
 
     fun mutate(mutateFreq: Double, mutateRate: Double) {
-        for ((layerIdx, layer) in layers.withIndex()) {
-            for ((neuronIdx, neuron) in layer.neurons.withIndex()) {
+        for (layer in layers) {
+            for (neuron in layer.neurons) {
                 neuron.mutate(mutateRate, mutateFreq)
             }
         }
@@ -118,10 +116,6 @@ class Net {
             var idx = wheel.binarySearch(r)
             if (idx < 0) idx = -idx - 1
             return arr[idx].copy()
-        }
-
-        fun lerp(a: Double, b: Double, p: Double): Double {
-            return a + (b - a) * p
         }
     }
 }

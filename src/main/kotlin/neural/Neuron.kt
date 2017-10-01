@@ -22,8 +22,9 @@ class Neuron {
 
     operator fun invoke(inputs: DoubleArray): Double {
         val sum = (0 until inputs.size).sumByDouble { weights[it] * inputs[it] } + bias
-        return Math.tanh(sum)
-        //return 1.0 / (1.0 + Math.exp(-sum))
+        //return Math.max(sum, 0.0) // Relu
+        return Math.tanh(sum) // tanh
+        //return 1.0 / (1.0 + Math.exp(-sum)) // Sigmoid
     }
 
     fun mutate(mutateRate: Double, mutateFreq: Double) {
@@ -34,11 +35,11 @@ class Neuron {
             bias += random(-mutateRate, mutateRate)
     }
 
-    fun crossover(net: List<Net>, layerIdx: Int, neuronIdx: Int, crossoverRate: Double, crossoverFreq: Double) {
+    fun crossover(net: List<Net>, layerIdx: Int, neuronIdx: Int, crossoverRate: Double) {
         val mate: Neuron = Net.pick(net).layers[layerIdx].neurons[neuronIdx]
-        for (i in 0 until weights.size) if (random() < crossoverFreq)
-            weights[i] = Net.lerp(weights[i], mate.weights[i], random(0.0, crossoverRate))
-        bias = Net.lerp(mate.bias, bias, random(0.0, crossoverRate))
+        for (i in 0 until weights.size)
+            weights[i] = lerp(weights[i], mate.weights[i], random(0.0, crossoverRate))
+        bias = lerp(mate.bias, bias, random(0.0, crossoverRate))
     }
 
     override fun toString(): String {
@@ -50,5 +51,9 @@ class Neuron {
         }
         sb.append("]")
         return sb.toString()
+    }
+
+    private fun lerp(a: Double, b: Double, p: Double): Double {
+        return a + (b - a) * p
     }
 }
