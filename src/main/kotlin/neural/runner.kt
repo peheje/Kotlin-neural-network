@@ -14,7 +14,7 @@ fun neuralNetworkRunner() {
     val mutatePower = 2.0
     val crossoverProp = 0.03
     val crossoverRate = 0.4
-    val poolsize = 10000L
+    val poolsize = 10_000L
     val parentInheritance = 0.9
     val batchSize = 4
     val layerSetup = arrayListOf(4, 8, 4, 1)
@@ -26,24 +26,24 @@ fun neuralNetworkRunner() {
     //val strategies = arrayOf(0)
     //val crossoverProps = linspace(0.04, 0.06, 3).toList()
 
-    for ((color, _) in plotColors.keys.zip(listOf(0))) {
-        geneticNeural(
-                poolsize = poolsize,
-                mutateProp = mutateProp,
-                mutatePropDecay = 0.9995,
-                mutateFreq = mutateFreq,
-                mutatePower = mutatePower,
-                mutatePowerDecay = 0.9997,
-                crossoverProp = crossoverProp,
-                crossoverRate = crossoverRate,
-                parentInheritance = parentInheritance,
-                batchSize = batchSize,
-                plot = true,
-                color = color,
-                timeInSeconds = 10*60,
-                strategy = 0,
-                layerSetup = layerSetup
-        )
+        for ((color, strategy) in plotColors.keys.zip(listOf(0, 1))) {
+            geneticNeural(
+                    poolsize = poolsize,
+                    mutateProp = mutateProp,
+                    mutatePropDecay = 0.9995,
+                    mutateFreq = mutateFreq,
+                    mutatePower = mutatePower,
+                    mutatePowerDecay = 0.9997,
+                    crossoverProp = crossoverProp,
+                    crossoverRate = crossoverRate,
+                    parentInheritance = parentInheritance,
+                    batchSize = batchSize,
+                    plot = true,
+                    color = color,
+                    timeInSeconds = 30,
+                    strategy = strategy,
+                    layerSetup = layerSetup
+            )
     }
 }
 
@@ -130,12 +130,12 @@ private fun geneticNeural(poolsize: Long,
         Net.computeWheel(pool)
         when (strategy) {
             0 -> {
-                val nextGen = Stream.generate { Net.pick(pool) }.parallel().limit(poolsize).collect(toList())
-                nextGen.parallelStream().forEach {
+                val nextGen = Stream.generate { Net.pick(pool) }.parallel().limit(poolsize).map {
                     if (random() < crossoverProp) it.crossover(pool, crossoverRate)
                     if (random() < mutateProp) it.mutate(mutateFreq, mutatePower)
                     it.computeFitness(trainingXs, trainingYs, parentInheritance, batchSize)
-                }
+                    it
+                }.collect(toList())
                 pool = nextGen
                 if (mutatePower > 0.10)
                     mutatePower *= mutatePowerDecay
@@ -143,7 +143,6 @@ private fun geneticNeural(poolsize: Long,
                     mutateProp *= mutatePropDecay
             }
             1 -> {
-
             }
         }
         // Algorithm end
