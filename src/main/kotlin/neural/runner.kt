@@ -1,32 +1,14 @@
 package neural
 
 import koma.*
-import org.simpleflatmapper.csv.CsvParser
 import random
-import java.io.FileReader
 import java.time.Duration
 import java.time.Instant
-import java.util.*
 import java.util.stream.Collectors.toList
 import java.util.stream.Stream
-import java.util.Arrays
-
-
 
 
 fun neuralNetworkRunner() {
-
-    // Read iris data
-    val nameMap = mapOf("Iris-virginica" to 0.0, "Iris-versicolor" to 1.0, "Iris-setosa" to 3.0)
-    val xs = mutableListOf<DoubleArray>()
-    val ys = mutableListOf<DoubleArray>()
-    CsvParser.stream(FileReader("datasets/iris.data")).use { stream ->
-        stream.forEach { row ->
-            xs.add(DoubleArray(4) { i -> row[i].toDouble() })
-            ys.add(DoubleArray(1) { _ -> nameMap[row[4]]!! })
-        }
-    }
-
     val mutateProp = 0.35
     val mutateFreq = 0.25
     val mutatePower = 2.0
@@ -35,7 +17,7 @@ fun neuralNetworkRunner() {
     val poolsize = 10000L
     val parentInheritance = 0.9
     val batchSize = 4
-    val layerSetup = arrayListOf(2, 8, 4, 1)
+    val layerSetup = arrayListOf(4, 8, 4, 1)
 
     //val mutatePowers = linspace(0.40, 0.40, 1).toList()
     //val mutateProps = linspace(0.35, 0.35, 1).toList()
@@ -89,12 +71,10 @@ private fun geneticNeural(poolsize: Long,
     var mutateProp = mutateProp
     var mutatePower = mutatePower
 
-    /*
+
     // Learn XOR
     val trainingXs = arrayOf(doubleArrayOf(1.0, 1.0), doubleArrayOf(1.0, 0.0), doubleArrayOf(0.0, 1.0), doubleArrayOf(0.0, 0.0))
-    val trainingXs = arrayOf(doubleArrayOf(1.0, 1.0), doubleArrayOf(1.0, 0.0), doubleArrayOf(0.0, 1.0), doubleArrayOf(0.0, 0.0))
     val trainingYs = arrayOf(doubleArrayOf(0.0), doubleArrayOf(1.0), doubleArrayOf(1.0), doubleArrayOf(0.0))
-    */
 
     // Learn AND
     /*
@@ -102,6 +82,7 @@ private fun geneticNeural(poolsize: Long,
     val trainingYs = arrayOf(doubleArrayOf(1.0), doubleArrayOf(0.0), doubleArrayOf(0.0), doubleArrayOf(0.0))
     */
 
+    /*
     val trainingXsList = mutableListOf<DoubleArray>()
     val trainingYsList = mutableListOf<DoubleArray>()
 
@@ -117,6 +98,29 @@ private fun geneticNeural(poolsize: Long,
 
     val trainingXs = trainingXsList.toTypedArray()
     val trainingYs = trainingYsList.toTypedArray()
+    */
+
+    /*
+    // Read iris data
+    val nameMap = mapOf("Iris-virginica" to 0.0, "Iris-versicolor" to 1.0, "Iris-setosa" to 3.0)
+    val xs = mutableListOf<DoubleArray>()
+    val ys = mutableListOf<DoubleArray>()
+    CsvParser.stream(FileReader("datasets/iris.data")).use { stream ->
+        stream.forEach { row ->
+            xs.add(DoubleArray(4) { i -> row[i].toDouble() })
+            ys.add(DoubleArray(1) { _ -> nameMap[row[4]]!! })
+        }
+    }
+
+    Collections.shuffle(xs)
+    Collections.shuffle(ys)
+
+    val trainingXs = xs.take(100).toTypedArray()
+    val trainingYs = ys.take(100).toTypedArray()
+
+    val testXs = xs.takeLast(50).toTypedArray()
+    val testYs = ys.takeLast(50).toTypedArray()
+    */
 
     // Algorithm go
     val starts = Instant.now()
@@ -174,16 +178,31 @@ private fun geneticNeural(poolsize: Long,
         title("Genetic algorithm")
     }
 
-    // Test for XOR and AND
+    // Test for iris
     /*
+    var nCorrect = 0
+    for ((i, testX) in testXs.withIndex()) {
+        val neuralGuess = best(testX).first()
+        val correct = testYs[i].first()
+        println("Net guess $neuralGuess correct $correct")
+        if (Math.abs(neuralGuess-correct) < 0.1) {
+            nCorrect++
+        }
+    }
+    println("Correct iris classifications $nCorrect / ${testXs.size}")
+    */
+
+    // Test for XOR and AND
+
     for ((i, x) in trainingXs.withIndex()) {
         val neuralGuess = best(x)
         val correct = trainingYs[i]
         println("Net guessed ${neuralGuess.toList()} true was ${correct.toList()}")
     }
-    */
+
 
     // Test for mathematical
+    /*
     var i = -5.0
     while (i < 5.0) {
         val neuralGuess = best(doubleArrayOf(i)).first()
@@ -193,5 +212,5 @@ private fun geneticNeural(poolsize: Long,
             1.0
         println("x: \t $i net: ${neuralGuess} \t true: ${correct} \t diff: ${neuralGuess - correct}")
         i += 0.5
-    }
+    }*/
 }
