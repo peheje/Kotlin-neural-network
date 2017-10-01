@@ -12,7 +12,7 @@ class Net {
         this.fitness = fitness
     }
 
-    constructor(trainingXs: Array<DoubleArray>, trainingYs: Array<DoubleArray>) {
+    constructor(trainingXs: Array<DoubleArray>, trainingYs: Array<DoubleArray>, parentInheritance: Double) {
         // Standard size
         layers = arrayOf(
                 Layer(2, 16),
@@ -23,14 +23,14 @@ class Net {
                 Layer(4, 4),
                 Layer(4, 1))
 
-        computeFitness(trainingXs, trainingYs)
+        computeFitness(trainingXs, trainingYs, parentInheritance)
     }
 
     private fun copy(): Net {
         return Net(Array(layers.size) { i -> layers[i].copy() }, fitness)
     }
 
-    fun computeFitness(trainingXs: Array<DoubleArray>, trainingYs: Array<DoubleArray>, batchSize: Int = 0) {
+    fun computeFitness(trainingXs: Array<DoubleArray>, trainingYs: Array<DoubleArray>, parentInheritance: Double, batchSize: Int = 0) {
 
         var trainingXs = trainingXs
         var trainingYs = trainingYs
@@ -51,8 +51,7 @@ class Net {
         val sumErr = (0 until trainingXs.size).sumByDouble { error(trainingXs[it], trainingYs[it]) }
         val myFitness = 1.0 / (sumErr + 1.0)
         val parentFitness = fitness
-        val d = 0.2
-        fitness = parentFitness * (1 - d) + myFitness
+        fitness = parentFitness * (1 - parentInheritance) + myFitness
     }
 
     fun error(input: DoubleArray, target: DoubleArray): Double {
