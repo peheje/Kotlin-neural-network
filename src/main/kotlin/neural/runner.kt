@@ -33,7 +33,7 @@ fun neuralNetworkRunner() {
                 mutatePropDecay = 0.9995,
                 mutateFreq = mutateFreq,
                 mutatePower = mutatePower,
-                mutatePowerDecay = 0.9995,
+                mutatePowerDecay = 0.9997,
                 crossoverProp = crossoverProp,
                 crossoverRate = crossoverRate,
                 parentInheritance = parentInheritance,
@@ -114,9 +114,9 @@ private fun geneticNeural(poolsize: Long,
                     it.computeFitness(trainingXs, trainingYs, parentInheritance, batchSize)
                 }
                 pool = nextGen
-                if (mutatePower > 0.02)
+                if (mutatePower > 0.10)
                     mutatePower *= mutatePowerDecay
-                if (mutateProp > 0.10)
+                if (mutateProp > 0.05)
                     mutateProp *= mutatePropDecay
             }
             1 -> {
