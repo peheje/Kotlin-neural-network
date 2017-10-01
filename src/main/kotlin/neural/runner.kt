@@ -40,7 +40,7 @@ fun neuralNetworkRunner() {
                 batchSize = batchSize,
                 plot = true,
                 color = color,
-                timeInSeconds = 60,
+                timeInSeconds = 10*60,
                 strategy = 0,
                 layerSetup = layerSetup
         )
@@ -73,8 +73,10 @@ private fun geneticNeural(poolsize: Long,
 
 
     // Learn XOR
+    /*
     val trainingXs = arrayOf(doubleArrayOf(1.0, 1.0), doubleArrayOf(1.0, 0.0), doubleArrayOf(0.0, 1.0), doubleArrayOf(0.0, 0.0))
     val trainingYs = arrayOf(doubleArrayOf(0.0), doubleArrayOf(1.0), doubleArrayOf(1.0), doubleArrayOf(0.0))
+    */
 
     // Learn AND
     /*
@@ -82,7 +84,7 @@ private fun geneticNeural(poolsize: Long,
     val trainingYs = arrayOf(doubleArrayOf(1.0), doubleArrayOf(0.0), doubleArrayOf(0.0), doubleArrayOf(0.0))
     */
 
-    /*
+    // Learning sin(x)/x
     val trainingXsList = mutableListOf<DoubleArray>()
     val trainingYsList = mutableListOf<DoubleArray>()
 
@@ -98,7 +100,6 @@ private fun geneticNeural(poolsize: Long,
 
     val trainingXs = trainingXsList.toTypedArray()
     val trainingYs = trainingYsList.toTypedArray()
-    */
 
     /*
     // Read iris data
@@ -194,15 +195,16 @@ private fun geneticNeural(poolsize: Long,
 
     // Test for XOR and AND
 
+    /*
     for ((i, x) in trainingXs.withIndex()) {
         val neuralGuess = best(x)
         val correct = trainingYs[i]
         println("Net guessed ${neuralGuess.toList()} true was ${correct.toList()}")
     }
+    */
 
 
     // Test for mathematical
-    /*
     var i = -5.0
     while (i < 5.0) {
         val neuralGuess = best(doubleArrayOf(i)).first()
@@ -212,5 +214,5 @@ private fun geneticNeural(poolsize: Long,
             1.0
         println("x: \t $i net: ${neuralGuess} \t true: ${correct} \t diff: ${neuralGuess - correct}")
         i += 0.5
-    }*/
+    }
 }
