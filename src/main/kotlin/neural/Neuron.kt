@@ -11,7 +11,7 @@ class Neuron {
         this.bias = random(-1.0, 1.0)
     }
 
-    constructor(weights: DoubleArray, bias: Double) {
+    private constructor(weights: DoubleArray, bias: Double) {
         this.weights = weights
         this.bias = bias
     }

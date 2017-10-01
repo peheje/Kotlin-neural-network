@@ -7,22 +7,32 @@ class Net {
     val layers: Array<Layer>
     var fitness: Double = 0.0
 
-    constructor(layers: Array<Layer>, fitness: Double) {
-        this.layers = layers
-        this.fitness = fitness
-    }
-
     constructor(trainingXs: Array<DoubleArray>, trainingYs: Array<DoubleArray>, layerSetup: List<Int>, parentInheritance: Double) {
         layers = (0 until layerSetup.size - 1).map { Layer(layerSetup[it], layerSetup[it + 1]) }.toTypedArray()
         computeFitness(trainingXs, trainingYs, parentInheritance)
+    }
+
+    private constructor(layers: Array<Layer>, fitness: Double) {
+        this.layers = layers
+        this.fitness = fitness
     }
 
     private fun copy(): Net {
         return Net(Array(layers.size) { i -> layers[i].copy() }, fitness)
     }
 
-    fun computeFitness(trainingXs: Array<DoubleArray>, trainingYs: Array<DoubleArray>, parentInheritance: Double, batchSize: Int = 0) {
+    operator fun invoke(inputs: DoubleArray): DoubleArray {
+        var layerOutput = inputs
+        for (layer in layers) layerOutput = layer(layerOutput)
+        return layerOutput
+    }
 
+    private fun error(input: DoubleArray, target: DoubleArray): Double {
+        val netOutput = this(input)
+        return (0 until target.size).sumByDouble { Math.pow(target[it] - netOutput[it], 2.0) }
+    }
+
+    fun computeFitness(trainingXs: Array<DoubleArray>, trainingYs: Array<DoubleArray>, parentInheritance: Double, batchSize: Int = 0) {
         var trainingXs = trainingXs
         var trainingYs = trainingYs
         val batchSize = Math.min(batchSize, trainingXs.size)
@@ -43,17 +53,6 @@ class Net {
         val batchFitness = 1.0 / (sumErr + 1.0)
         val parentFitness = fitness
         fitness = parentFitness * parentInheritance + batchFitness
-    }
-
-    private fun error(input: DoubleArray, target: DoubleArray): Double {
-        val netOutput = this(input)
-        return (0 until target.size).sumByDouble { Math.pow(target[it] - netOutput[it], 2.0) }
-    }
-
-    operator fun invoke(inputs: DoubleArray): DoubleArray {
-        var layerOutput: DoubleArray = inputs
-        for (layer in layers) layerOutput = layer(layerOutput)
-        return layerOutput
     }
 
     override fun toString(): String {
@@ -85,9 +84,9 @@ class Net {
     companion object {
         private var wheel = DoubleArray(0)
 
-        fun computeWheel(arr: List<Net>) {
+        fun computeWheel(pool: List<Net>) {
             var sum = 0.0
-            wheel = DoubleArray(arr.size) { i -> sum += arr[i].fitness; sum }
+            wheel = DoubleArray(pool.size) { i -> sum += pool[i].fitness; sum }
         }
 
         fun pick(arr: List<Net>): Net {
