@@ -42,6 +42,10 @@ class Neuron {
         bias = lerp(mate.bias, bias, random(0.0, crossoverRate))
     }
 
+    private fun lerp(a: Double, b: Double, p: Double): Double {
+        return a + (b - a) * p
+    }
+
     override fun toString(): String {
         val sb = StringBuilder()
         sb.append("[")
@@ -51,9 +55,5 @@ class Neuron {
         }
         sb.append("]")
         return sb.toString()
-    }
-
-    private fun lerp(a: Double, b: Double, p: Double): Double {
-        return a + (b - a) * p
     }
 }

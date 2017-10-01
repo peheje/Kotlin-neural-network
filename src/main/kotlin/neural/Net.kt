@@ -56,19 +56,6 @@ class Net {
         return layerOutput
     }
 
-    private fun softmax(netOutput: DoubleArray): DoubleArray {
-        val max = netOutput.max() ?: 0.0
-        for (i in 0 until netOutput.size) netOutput[i] -= max
-        val sum = netOutput.sumByDouble { Math.exp(it) }
-        return DoubleArray(netOutput.size) { i -> Math.exp(netOutput[i]) / sum }
-    }
-
-    fun softmaxLoss(inputs: DoubleArray, correctIndex: Int): Double {
-        val netOutput: DoubleArray = this(inputs)
-        val sm = softmax(netOutput)[correctIndex]
-        return -Math.log(sm)
-    }
-
     override fun toString(): String {
         val sb = StringBuilder()
         for (layer in layers) {
@@ -110,5 +97,18 @@ class Net {
             if (idx < 0) idx = -idx - 1
             return arr[idx].copy()
         }
+    }
+
+    private fun softmax(netOutput: DoubleArray): DoubleArray {
+        val max = netOutput.max() ?: 0.0
+        for (i in 0 until netOutput.size) netOutput[i] -= max
+        val sum = netOutput.sumByDouble { Math.exp(it) }
+        return DoubleArray(netOutput.size) { i -> Math.exp(netOutput[i]) / sum }
+    }
+
+    fun softmaxLoss(inputs: DoubleArray, correctIndex: Int): Double {
+        val netOutput: DoubleArray = this(inputs)
+        val sm = softmax(netOutput)[correctIndex]
+        return -Math.log(sm)
     }
 }
