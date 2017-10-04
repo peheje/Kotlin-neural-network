@@ -17,9 +17,9 @@ fun neuralNetworkRunner() {
     val mutatePower = 2.0
     val crossoverProp = 0.03
     val crossoverRate = 0.4
-    val poolsize = 10_000L
-    val parentInheritance = 0.9
-    val batchSize = 4
+    val poolsize = 5000L
+    val parentInheritance = 0.1
+    val batchSize = 8
     val layerSetup = arrayListOf(4, 8, 4, 3)
 
     //val mutatePowers = linspace(0.40, 0.40, 1).toList()
@@ -43,7 +43,7 @@ fun neuralNetworkRunner() {
                 batchSize = batchSize,
                 plot = true,
                 color = color,
-                timeInSeconds = 10,
+                timeInSeconds = 20,
                 strategy = strategy,
                 layerSetup = layerSetup
         )
@@ -123,11 +123,11 @@ private fun geneticNeural(poolsize: Long,
     Collections.shuffle(xs, Random(seed))
     Collections.shuffle(ys, Random(seed))
 
-    val trainingXs = xs.take(140)
-    val trainingYs = ys.take(140)
+    val trainingXs = xs.take(130)
+    val trainingYs = ys.take(130)
 
-    val testXs = xs.takeLast(10)
-    val testYs = ys.takeLast(10)
+    val testXs = xs.takeLast(20)
+    val testYs = ys.takeLast(20)
 
     // Algorithm go
     val starts = Instant.now()
