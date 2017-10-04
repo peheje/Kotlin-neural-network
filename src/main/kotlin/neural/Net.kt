@@ -8,7 +8,8 @@ class Net {
     var fitness: Double = 0.0
 
     constructor(trainingXs: Array<DoubleArray>, trainingYs: Array<DoubleArray>, layerSetup: List<Int>, parentInheritance: Double) {
-        layers = (0 until layerSetup.size - 1).map { Layer(layerSetup[it], layerSetup[it + 1]) }.toTypedArray()
+        val lastLayerIdx = layerSetup.size - 2  // -2 as last is output size
+        layers = (0 until layerSetup.size - 1).map { Layer(layerSetup[it], layerSetup[it + 1], it == lastLayerIdx) }.toTypedArray()
         computeFitness(trainingXs, trainingYs, parentInheritance)
     }
 
@@ -27,7 +28,7 @@ class Net {
         return layerOutput
     }
 
-    private fun error(input: DoubleArray, target: DoubleArray): Double {
+    private fun squaredError(input: DoubleArray, target: DoubleArray): Double {
         val netOutput = this(input)
         return (0 until target.size).sumByDouble { Math.pow(target[it] - netOutput[it], 2.0) }
     }
@@ -49,8 +50,10 @@ class Net {
             trainingYs = batchYs.toTypedArray()
         }
 
-        val sumErr = (0 until trainingXs.size).sumByDouble { error(trainingXs[it], trainingYs[it]) }
-        val batchFitness = 1.0 / (sumErr + 1.0)
+        //val err = (0 until trainingXs.size).sumByDouble { squaredError(trainingXs[it], trainingYs[it]) }
+        val err = (0 until trainingXs.size).sumByDouble { Math.pow(svmLoss(trainingXs[it], trainingYs[it]), 2.0) }
+
+        val batchFitness = 1.0 / (err + 1.0)
         val parentFitness = fitness
         fitness = parentFitness * parentInheritance + batchFitness
     }
@@ -98,6 +101,15 @@ class Net {
         }
     }
 
+    private fun svmLoss(xs: DoubleArray, ys: DoubleArray): Double {
+        val netOutput = this(xs)
+        val correctIdx = ys.first().toInt()
+        val correctScore = netOutput[correctIdx]
+        return (0 until netOutput.size)
+                .filter { it != correctIdx }
+                .sumByDouble { Math.max(0.0, netOutput[it] - correctScore + 10) }
+    }
+
     private fun softmax(netOutput: DoubleArray): DoubleArray {
         val max = netOutput.max() ?: 0.0
         for (i in 0 until netOutput.size) netOutput[i] -= max
@@ -106,7 +118,8 @@ class Net {
     }
 
     fun softmaxLoss(inputs: DoubleArray, correctIndex: Int): Double {
-        val netOutput: DoubleArray = this(inputs)
+        // Not tested
+        val netOutput = this(inputs)
         val sm = softmax(netOutput)[correctIndex]
         return -Math.log(sm)
     }

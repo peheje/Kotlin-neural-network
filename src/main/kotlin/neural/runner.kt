@@ -1,9 +1,12 @@
 package neural
 
 import koma.*
+import org.simpleflatmapper.csv.CsvParser
 import random
+import java.io.FileReader
 import java.time.Duration
 import java.time.Instant
+import java.util.*
 import java.util.stream.Collectors.toList
 import java.util.stream.Stream
 
@@ -17,7 +20,7 @@ fun neuralNetworkRunner() {
     val poolsize = 10_000L
     val parentInheritance = 0.9
     val batchSize = 4
-    val layerSetup = arrayListOf(4, 8, 4, 1)
+    val layerSetup = arrayListOf(4, 8, 4, 3)
 
     //val mutatePowers = linspace(0.40, 0.40, 1).toList()
     //val mutateProps = linspace(0.35, 0.35, 1).toList()
@@ -26,7 +29,7 @@ fun neuralNetworkRunner() {
     //val strategies = arrayOf(0)
     //val crossoverProps = linspace(0.04, 0.06, 3).toList()
 
-        for ((color, strategy) in plotColors.keys.zip(listOf(0, 1))) {
+        for ((color, strategy) in plotColors.keys.zip(listOf(0))) {
             geneticNeural(
                     poolsize = poolsize,
                     mutateProp = mutateProp,
@@ -85,6 +88,7 @@ private fun geneticNeural(poolsize: Long,
     */
 
     // Learning sin(x)/x
+    /*
     val trainingXsList = mutableListOf<DoubleArray>()
     val trainingYsList = mutableListOf<DoubleArray>()
 
@@ -100,10 +104,11 @@ private fun geneticNeural(poolsize: Long,
 
     val trainingXs = trainingXsList.toTypedArray()
     val trainingYs = trainingYsList.toTypedArray()
+    */
 
-    /*
+
     // Read iris data
-    val nameMap = mapOf("Iris-virginica" to 0.0, "Iris-versicolor" to 1.0, "Iris-setosa" to 3.0)
+    val nameMap = mapOf("Iris-virginica" to 0.0, "Iris-versicolor" to 1.0, "Iris-setosa" to 2.0)
     val xs = mutableListOf<DoubleArray>()
     val ys = mutableListOf<DoubleArray>()
     CsvParser.stream(FileReader("datasets/iris.data")).use { stream ->
@@ -113,15 +118,15 @@ private fun geneticNeural(poolsize: Long,
         }
     }
 
-    Collections.shuffle(xs)
-    Collections.shuffle(ys)
+    val seed = System.nanoTime()
+    Collections.shuffle(xs, Random(seed))
+    Collections.shuffle(ys, Random(seed))
 
     val trainingXs = xs.take(100).toTypedArray()
     val trainingYs = ys.take(100).toTypedArray()
 
     val testXs = xs.takeLast(50).toTypedArray()
     val testYs = ys.takeLast(50).toTypedArray()
-    */
 
     // Algorithm go
     val starts = Instant.now()
@@ -179,18 +184,16 @@ private fun geneticNeural(poolsize: Long,
     }
 
     // Test for iris
-    /*
+
     var nCorrect = 0
     for ((i, testX) in testXs.withIndex()) {
-        val neuralGuess = best(testX).first()
-        val correct = testYs[i].first()
+        val neuralGuess: Long = Math.round(best(testX).first())
+        val correct: Long = Math.round(testYs[i].first())
         println("Net guess $neuralGuess correct $correct")
-        if (Math.abs(neuralGuess-correct) < 0.1) {
-            nCorrect++
-        }
+        if (neuralGuess == correct) nCorrect++
     }
     println("Correct iris classifications $nCorrect / ${testXs.size}")
-    */
+
 
     // Test for XOR and AND
 
@@ -202,7 +205,7 @@ private fun geneticNeural(poolsize: Long,
     }
     */
 
-
+    /*
     // Test for mathematical
     var i = -5.0
     while (i < 5.0) {
@@ -214,4 +217,5 @@ private fun geneticNeural(poolsize: Long,
         println("x: \t $i net: ${neuralGuess} \t true: ${correct} \t diff: ${neuralGuess - correct}")
         i += 0.5
     }
+    */
 }

@@ -13,6 +13,6 @@ fun neural2() {
 
     println(output.toList())
 
-    val error = net.error(input, target)
-    println(error)
+    val squaredError = net.squaredError(input, target)
+    println(squaredError)
 }

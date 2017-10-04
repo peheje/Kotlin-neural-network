@@ -20,10 +20,13 @@ class Neuron {
         return Neuron(weights.copyOf(), bias)
     }
 
-    operator fun invoke(inputs: DoubleArray): Double {
+    operator fun invoke(inputs: DoubleArray, lastLayer: Boolean): Double {
         val sum = (0 until inputs.size).sumByDouble { weights[it] * inputs[it] } + bias
+        return if (lastLayer)
+            sum
+        else
+            Math.tanh(sum) // tanh
         //return Math.max(sum, 0.0) // Relu
-        return Math.tanh(sum) // tanh
         //return 1.0 / (1.0 + Math.exp(-sum)) // Sigmoid
     }
 

@@ -2,7 +2,9 @@ import koma.*
 import neural.neuralNetworkRunner
 import java.time.Duration
 import java.time.Instant
+import java.util.*
 import java.util.stream.Collectors
+
 
 // BY peheje@github
 // To run set settings.xml as your maven settings.xml (in file -> settings -> maven -> settings.xml override in IntelliJ)
