@@ -4,22 +4,22 @@ import random
 import java.util.concurrent.ThreadLocalRandom
 
 class Net {
-    val layers: Array<Layer>
+    val layers: List<Layer>
     var fitness: Double = 0.0
 
-    constructor(trainingXs: Array<DoubleArray>, trainingYs: Array<DoubleArray>, layerSetup: List<Int>, parentInheritance: Double) {
+    constructor(trainingXs: List<DoubleArray>, trainingYs: List<DoubleArray>, layerSetup: List<Int>, parentInheritance: Double) {
         val lastLayerIdx = layerSetup.size - 2  // -2 as last is output size
-        layers = (0 until layerSetup.size - 1).map { Layer(layerSetup[it], layerSetup[it + 1], it == lastLayerIdx) }.toTypedArray()
+        layers = (0 until layerSetup.size - 1).map { Layer(layerSetup[it], layerSetup[it + 1], it == lastLayerIdx) }
         computeFitness(trainingXs, trainingYs, parentInheritance)
     }
 
-    private constructor(layers: Array<Layer>, fitness: Double) {
+    private constructor(layers: List<Layer>, fitness: Double) {
         this.layers = layers
         this.fitness = fitness
     }
 
     private fun copy(): Net {
-        return Net(Array(layers.size) { i -> layers[i].copy() }, fitness)
+        return Net(List(layers.size) { i -> layers[i].copy() }, fitness)
     }
 
     operator fun invoke(inputs: DoubleArray): DoubleArray {
@@ -33,7 +33,7 @@ class Net {
         return (0 until target.size).sumByDouble { Math.pow(target[it] - netOutput[it], 2.0) }
     }
 
-    fun computeFitness(trainingXs: Array<DoubleArray>, trainingYs: Array<DoubleArray>, parentInheritance: Double, batchSize: Int = 0) {
+    fun computeFitness(trainingXs: List<DoubleArray>, trainingYs: List<DoubleArray>, parentInheritance: Double, batchSize: Int = 0) {
         var trainingXs = trainingXs
         var trainingYs = trainingYs
         val batchSize = Math.min(batchSize, trainingXs.size)
@@ -41,13 +41,13 @@ class Net {
         if (batchSize != 0) {
             val batchXs = mutableListOf<DoubleArray>()
             val batchYs = mutableListOf<DoubleArray>()
-            while (batchXs.size < batchSize) {
+            for (i in 0 until batchSize) {
                 val r = ThreadLocalRandom.current().nextInt(trainingXs.size)
                 batchXs.add(trainingXs[r])
                 batchYs.add(trainingYs[r])
             }
-            trainingXs = batchXs.toTypedArray()
-            trainingYs = batchYs.toTypedArray()
+            trainingXs = batchXs
+            trainingYs = batchYs
         }
 
         //val err = (0 until trainingXs.size).sumByDouble { squaredError(trainingXs[it], trainingYs[it]) }

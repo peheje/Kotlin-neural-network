@@ -29,24 +29,24 @@ fun neuralNetworkRunner() {
     //val strategies = arrayOf(0)
     //val crossoverProps = linspace(0.04, 0.06, 3).toList()
 
-        for ((color, strategy) in plotColors.keys.zip(listOf(0))) {
-            geneticNeural(
-                    poolsize = poolsize,
-                    mutateProp = mutateProp,
-                    mutatePropDecay = 0.9995,
-                    mutateFreq = mutateFreq,
-                    mutatePower = mutatePower,
-                    mutatePowerDecay = 0.9997,
-                    crossoverProp = crossoverProp,
-                    crossoverRate = crossoverRate,
-                    parentInheritance = parentInheritance,
-                    batchSize = batchSize,
-                    plot = true,
-                    color = color,
-                    timeInSeconds = 60,
-                    strategy = strategy,
-                    layerSetup = layerSetup
-            )
+    for ((color, strategy) in plotColors.keys.zip(listOf(0))) {
+        geneticNeural(
+                poolsize = poolsize,
+                mutateProp = mutateProp,
+                mutatePropDecay = 0.9995,
+                mutateFreq = mutateFreq,
+                mutatePower = mutatePower,
+                mutatePowerDecay = 0.9997,
+                crossoverProp = crossoverProp,
+                crossoverRate = crossoverRate,
+                parentInheritance = parentInheritance,
+                batchSize = batchSize,
+                plot = true,
+                color = color,
+                timeInSeconds = 10,
+                strategy = strategy,
+                layerSetup = layerSetup
+        )
     }
 }
 
@@ -114,42 +114,37 @@ private fun geneticNeural(poolsize: Long,
     CsvParser.stream(FileReader("datasets/iris.data")).use { stream ->
         stream.forEach { row ->
             xs.add(DoubleArray(4) { i -> row[i].toDouble() })
-            ys.add(DoubleArray(1) { _ -> nameMap[row[4]]!! })
+            ys.add(DoubleArray(1) { _ -> nameMap[row.last()]!! })
         }
     }
 
+    // Create training set and test set
     val seed = System.nanoTime()
     Collections.shuffle(xs, Random(seed))
     Collections.shuffle(ys, Random(seed))
 
-    val trainingXs = xs.take(100).toTypedArray()
-    val trainingYs = ys.take(100).toTypedArray()
+    val trainingXs = xs.take(140)
+    val trainingYs = ys.take(140)
 
-    val testXs = xs.takeLast(50).toTypedArray()
-    val testYs = ys.takeLast(50).toTypedArray()
+    val testXs = xs.takeLast(10)
+    val testYs = ys.takeLast(10)
 
     // Algorithm go
     val starts = Instant.now()
     var pool = Stream.generate { Net(trainingXs, trainingYs, layerSetup, parentInheritance) }.parallel().limit(poolsize).collect(toList())
     while (Duration.between(starts, Instant.now()).seconds < timeInSeconds) {
         Net.computeWheel(pool)
-        when (strategy) {
-            0 -> {
-                val nextGen = Stream.generate { Net.pick(pool) }.parallel().limit(poolsize).map {
-                    if (random() < crossoverProp) it.crossover(pool, crossoverRate)
-                    if (random() < mutateProp) it.mutate(mutateFreq, mutatePower)
-                    it.computeFitness(trainingXs, trainingYs, parentInheritance, batchSize)
-                    it
-                }.collect(toList())
-                pool = nextGen
-                if (mutatePower > 0.10)
-                    mutatePower *= mutatePowerDecay
-                if (mutateProp > 0.05)
-                    mutateProp *= mutatePropDecay
-            }
-            1 -> {
-            }
-        }
+        val nextGen = Stream.generate { Net.pick(pool) }.parallel().limit(poolsize).map {
+            if (random() < crossoverProp) it.crossover(pool, crossoverRate)
+            if (random() < mutateProp) it.mutate(mutateFreq, mutatePower)
+            it.computeFitness(trainingXs, trainingYs, parentInheritance, batchSize)
+            it
+        }.collect(toList())
+        pool = nextGen
+        if (mutatePower > 0.10)
+            mutatePower *= mutatePowerDecay
+        if (mutateProp > 0.05)
+            mutateProp *= mutatePropDecay
         // Algorithm end
 
         if (generation++ % 100 == 0) {
@@ -194,7 +189,7 @@ private fun geneticNeural(poolsize: Long,
         println("Net guess $bestGuess correct $correct")
         if (bestGuess == correct) nCorrect++
     }
-    println("Correct iris classifications $nCorrect / ${testXs.size}")
+    println("Correct iris test-set classifications $nCorrect / ${testXs.size}")
 
 
     // Test for XOR and AND

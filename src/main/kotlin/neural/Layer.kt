@@ -1,21 +1,21 @@
 package neural
 
 class Layer {
-    val neurons: Array<Neuron>
+    val neurons: List<Neuron>
     private val isLast: Boolean
 
     constructor(previousInputSize: Int, size: Int, lastLayer: Boolean) {
-        neurons = Array(size) { Neuron(previousInputSize) }
+        neurons = List(size) { Neuron(previousInputSize) }
         isLast = lastLayer
     }
 
-    private constructor(otherNeurons: Array<Neuron>, lastLayer: Boolean) {
+    private constructor(otherNeurons: List<Neuron>, lastLayer: Boolean) {
         neurons = otherNeurons
         isLast = lastLayer
     }
 
     fun copy(): Layer {
-        return Layer(Array(neurons.size) { i -> neurons[i].copy() }, isLast)
+        return Layer(List(neurons.size) { i -> neurons[i].copy() }, isLast)
     }
 
     operator fun invoke(inputs: DoubleArray): DoubleArray {
