@@ -43,7 +43,7 @@ fun neuralNetworkRunner() {
                     batchSize = batchSize,
                     plot = true,
                     color = color,
-                    timeInSeconds = 30,
+                    timeInSeconds = 60,
                     strategy = strategy,
                     layerSetup = layerSetup
             )
@@ -187,10 +187,12 @@ private fun geneticNeural(poolsize: Long,
 
     var nCorrect = 0
     for ((i, testX) in testXs.withIndex()) {
-        val neuralGuess: Long = Math.round(best(testX).first())
-        val correct: Long = Math.round(testYs[i].first())
-        println("Net guess $neuralGuess correct $correct")
-        if (neuralGuess == correct) nCorrect++
+
+        val correct = Math.round(testYs[i].first()).toInt()
+        val neuralGuesses: DoubleArray = best(testX)
+        val bestGuess = neuralGuesses.indexOf(neuralGuesses.max()!!)
+        println("Net guess $bestGuess correct $correct")
+        if (bestGuess == correct) nCorrect++
     }
     println("Correct iris classifications $nCorrect / ${testXs.size}")
 
