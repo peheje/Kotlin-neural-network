@@ -11,6 +11,7 @@ class WineDataset : Dataset() {
         get() = 3
 
     override fun getData(): Data {
+
         // Read wine data
         val xs = mutableListOf<DoubleArray>()
         val ys = mutableListOf<DoubleArray>()
@@ -22,8 +23,16 @@ class WineDataset : Dataset() {
             }
         }
 
+        // Zero Normalize
+        val nFeatures = xs.first().size
+        for (featureId in 0 until nFeatures) {
+            val avg = xs.sumByDouble { it[featureId] } / xs.size
+            for (i in 0 until nFeatures) xs[featureId][i] -= avg
+        }
+
         // Create training set and test set
-        val seed = System.nanoTime()
+        //val seed = System.nanoTime()
+        val seed = 42L
         Collections.shuffle(xs, Random(seed))
         Collections.shuffle(ys, Random(seed))
 

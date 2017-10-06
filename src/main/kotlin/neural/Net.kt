@@ -45,9 +45,21 @@ class Net {
             ys = batchYs
         }
 
-        var err = (0 until xs.size).sumByDouble { softmaxLoss(xs[it], ys[it]) }
-        err *= err
-        val batchFitness = 1.0 / (err + 0.001)
+        var dataLoss = (0 until xs.size).sumByDouble { softmaxLoss( xs[it], ys[it]) }
+        dataLoss *= dataLoss
+        //dataLoss /= xs.size
+
+        // Todo move to crossoverAndMutate?
+        val gamma = 0.001
+        var regularizationLoss = 0.0
+        for (layer in layers)
+            for (neuron in layer.neurons)
+                for (weight in neuron.weights)
+                    regularizationLoss += weight*weight
+
+        val loss = dataLoss + gamma * regularizationLoss
+
+        val batchFitness = 1.0 / loss
         val parentFitness = fitness
         fitness = parentFitness * parentInheritance + batchFitness
     }

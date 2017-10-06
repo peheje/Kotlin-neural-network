@@ -3,7 +3,7 @@ package neural
 import random
 
 class Neuron {
-    private var weights: DoubleArray
+    var weights: DoubleArray
     private var bias: Double
 
     constructor(numWeights: Int) {
@@ -25,9 +25,9 @@ class Neuron {
         return if (lastLayer)
             sum
         else
-            Math.tanh(sum) // tanh
-        //return Math.max(sum, 0.0) // Relu
-        //return 1.0 / (1.0 + Math.exp(-sum)) // Sigmoid
+            //Math.tanh(sum) // tanh
+            return Math.max(sum, 0.0) // Relu
+            //return 1.0 / (1.0 + Math.exp(-sum)) // Sigmoid
     }
 
     fun mutate(mutatePower: Double, mutateFreq: Double) {
@@ -42,7 +42,7 @@ class Neuron {
         val mate: Neuron = Net.pick(net).layers[layerIdx].neurons[neuronIdx]
         for (i in 0 until weights.size)
             weights[i] = lerp(weights[i], mate.weights[i], random(0.0, crossoverRate))
-        bias = lerp(mate.bias, bias, random(0.0, crossoverRate))
+        bias = lerp(bias, mate.bias, random(0.0, crossoverRate))
     }
 
     private fun lerp(a: Double, b: Double, p: Double): Double {
