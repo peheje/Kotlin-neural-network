@@ -93,6 +93,15 @@ class Net {
             if (idx < 0) idx = -idx - 1
             return arr[idx].copy()
         }
+
+        fun crossoverAndMutate(net: Net, pool: List<Net>, crossoverProp: Double, crossoverRate: Double, mutateProp: Double, mutateFreq: Double, mutatePower: Double) {
+            for ((layerIdx, layer) in net.layers.withIndex()) {
+                for ((neuronIdx, neuron) in layer.neurons.withIndex()) {
+                    if (random() < crossoverProp) neuron.crossover(pool, layerIdx, neuronIdx, crossoverRate)
+                    if (random() < mutateProp) neuron.mutate(mutatePower, mutateFreq)
+                }
+            }
+        }
     }
 
     private fun svmLoss(xs: DoubleArray, ys: DoubleArray): Double {
