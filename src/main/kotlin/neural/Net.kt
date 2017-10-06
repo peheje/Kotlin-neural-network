@@ -28,32 +28,26 @@ class Net {
         return layerOutput
     }
 
-    private fun squaredError(input: DoubleArray, target: DoubleArray): Double {
-        val netOutput = this(input)
-        return (0 until target.size).sumByDouble { Math.pow(target[it] - netOutput[it], 2.0) }
-    }
-
     fun computeFitness(trainingXs: List<DoubleArray>, trainingYs: List<DoubleArray>, parentInheritance: Double, batchSize: Int = 0) {
-        var trainingXs = trainingXs
-        var trainingYs = trainingYs
-        val batchSize = Math.min(batchSize, trainingXs.size)
+        var xs = trainingXs
+        var ys = trainingYs
+        val clippedBatchsize = Math.min(batchSize, xs.size)
 
-        if (batchSize != 0) {
+        if (clippedBatchsize != 0) {
             val batchXs = mutableListOf<DoubleArray>()
             val batchYs = mutableListOf<DoubleArray>()
-            for (i in 0 until batchSize) {
-                val r = ThreadLocalRandom.current().nextInt(trainingXs.size)
-                batchXs.add(trainingXs[r])
-                batchYs.add(trainingYs[r])
+            for (i in 0 until clippedBatchsize) {
+                val r = ThreadLocalRandom.current().nextInt(xs.size)
+                batchXs.add(xs[r])
+                batchYs.add(ys[r])
             }
-            trainingXs = batchXs
-            trainingYs = batchYs
+            xs = batchXs
+            ys = batchYs
         }
 
-        //val err = (0 until trainingXs.size).sumByDouble { squaredError(trainingXs[it], trainingYs[it]) }
-        val err = (0 until trainingXs.size).sumByDouble { Math.pow(softmaxLoss(trainingXs[it], trainingYs[it]), 2.0) }
-
-        val batchFitness = 1.0 / (err + 1.0)
+        var err = (0 until xs.size).sumByDouble { softmaxLoss(xs[it], ys[it]) }
+        err *= err
+        val batchFitness = 1.0 / (err + 0.001)
         val parentFitness = fitness
         fitness = parentFitness * parentInheritance + batchFitness
     }
@@ -110,15 +104,14 @@ class Net {
                 .sumByDouble { Math.max(0.0, netOutput[it] - correctScore + 1.0) }
     }
 
+    private fun softmax(netOutput: DoubleArray): DoubleArray {
+        val max = netOutput.max() ?: 0.0
+        for (i in 0 until netOutput.size) netOutput[i] -= max
+        val sum = netOutput.sumByDouble { Math.exp(it) }
+        return DoubleArray(netOutput.size) { i -> Math.exp(netOutput[i]) / sum }
+    }
+
     private fun softmaxLoss(xs: DoubleArray, ys: DoubleArray): Double {
-
-        fun softmax(netOutput: DoubleArray): DoubleArray {
-            val max = netOutput.max() ?: 0.0
-            for (i in 0 until netOutput.size) netOutput[i] -= max
-            val sum = netOutput.sumByDouble { Math.exp(it) }
-            return DoubleArray(netOutput.size) { i -> Math.exp(netOutput[i]) / sum }
-        }
-
         val netOutput = this(xs)
         val correctIndex = ys.first().toInt()
         val sm = softmax(netOutput)[correctIndex]
