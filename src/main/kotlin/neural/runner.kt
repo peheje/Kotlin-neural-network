@@ -1,12 +1,9 @@
 package neural
 
 import koma.*
-import org.simpleflatmapper.csv.CsvParser
 import random
-import java.io.FileReader
 import java.time.Duration
 import java.time.Instant
-import java.util.*
 import java.util.stream.Collectors.toList
 import java.util.stream.Stream
 
@@ -45,7 +42,8 @@ fun neuralNetworkRunner() {
                 color = color,
                 timeInSeconds = 20,
                 strategy = strategy,
-                layerSetup = layerSetup
+                layerSetup = layerSetup,
+                dataset = XorDataset()
         )
     }
 }
@@ -65,7 +63,9 @@ private fun geneticNeural(poolsize: Long,
                           color: String,
                           timeInSeconds: Int,
                           strategy: Int,
-                          layerSetup: List<Int>) {
+                          layerSetup: List<Int>,
+                          dataset: Dataset) {
+
     val x = mutableListOf<Double>()
     val y = mutableListOf<Double>()
     var generation = 0
@@ -74,61 +74,8 @@ private fun geneticNeural(poolsize: Long,
     var mutateProp = mutateProp
     var mutatePower = mutatePower
 
-
-    // Learn XOR
-    /*
-    val trainingXs = arrayOf(doubleArrayOf(1.0, 1.0), doubleArrayOf(1.0, 0.0), doubleArrayOf(0.0, 1.0), doubleArrayOf(0.0, 0.0))
-    val trainingYs = arrayOf(doubleArrayOf(0.0), doubleArrayOf(1.0), doubleArrayOf(1.0), doubleArrayOf(0.0))
-    */
-
-    // Learn AND
-    /*
-    val trainingXs = arrayOf(doubleArrayOf(1.0, 1.0), doubleArrayOf(1.0, 0.0), doubleArrayOf(0.0, 1.0), doubleArrayOf(0.0, 0.0))
-    val trainingYs = arrayOf(doubleArrayOf(1.0), doubleArrayOf(0.0), doubleArrayOf(0.0), doubleArrayOf(0.0))
-    */
-
-    // Learning sin(x)/x
-    /*
-    val trainingXsList = mutableListOf<DoubleArray>()
-    val trainingYsList = mutableListOf<DoubleArray>()
-
-    var t = -5.0
-    while (t < 5.0) {
-        trainingXsList.add(doubleArrayOf(t))
-        if (t != 0.0)
-            trainingYsList.add(doubleArrayOf((Math.sin(t) / t) * 1.0))
-        else
-            trainingYsList.add(doubleArrayOf(1.0))
-        t += 0.01
-    }
-
-    val trainingXs = trainingXsList.toTypedArray()
-    val trainingYs = trainingYsList.toTypedArray()
-    */
-
-
-    // Read iris data
-    val nameMap = mapOf("Iris-virginica" to 0.0, "Iris-versicolor" to 1.0, "Iris-setosa" to 2.0)
-    val xs = mutableListOf<DoubleArray>()
-    val ys = mutableListOf<DoubleArray>()
-    CsvParser.stream(FileReader("datasets/iris.data")).use { stream ->
-        stream.forEach { row ->
-            xs.add(DoubleArray(4) { i -> row[i].toDouble() })
-            ys.add(DoubleArray(1) { _ -> nameMap[row.last()]!! })
-        }
-    }
-
-    // Create training set and test set
-    val seed = System.nanoTime()
-    Collections.shuffle(xs, Random(seed))
-    Collections.shuffle(ys, Random(seed))
-
-    val trainingXs = xs.take(130)
-    val trainingYs = ys.take(130)
-
-    val testXs = xs.takeLast(20)
-    val testYs = ys.takeLast(20)
-
+    val (trainingXs, trainingYs) = dataset.getData()
+//
     // Algorithm go
     val starts = Instant.now()
     var pool = Stream.generate { Net(trainingXs, trainingYs, layerSetup, parentInheritance) }.parallel().limit(poolsize).collect(toList())
@@ -157,9 +104,6 @@ private fun geneticNeural(poolsize: Long,
         }
     }
 
-    val best = pool.maxBy { it.fitness }!!
-    println(best)
-
     if (plot) {
         figure(1)
         plotArrays(x.toDoubleArray(), y.toDoubleArray(), color,
@@ -178,41 +122,7 @@ private fun geneticNeural(poolsize: Long,
         title("Genetic algorithm")
     }
 
-    // Test for iris
-
-    var nCorrect = 0
-    for ((i, testX) in testXs.withIndex()) {
-
-        val correct = Math.round(testYs[i].first()).toInt()
-        val neuralGuesses: DoubleArray = best(testX)
-        val bestGuess = neuralGuesses.indexOf(neuralGuesses.max()!!)
-        println("Net guess $bestGuess correct $correct")
-        if (bestGuess == correct) nCorrect++
-    }
-    println("Correct iris test-set classifications $nCorrect / ${testXs.size}")
-
-
-    // Test for XOR and AND
-
-    /*
-    for ((i, x) in trainingXs.withIndex()) {
-        val neuralGuess = best(x)
-        val correct = trainingYs[i]
-        println("Net guessed ${neuralGuess.toList()} true was ${correct.toList()}")
-    }
-    */
-
-    /*
-    // Test for mathematical
-    var i = -5.0
-    while (i < 5.0) {
-        val neuralGuess = best(doubleArrayOf(i)).first()
-        val correct = if (i != 0.0)
-            (Math.sin(i) / i) * 1.0
-        else
-            1.0
-        println("x: \t $i net: ${neuralGuess} \t true: ${correct} \t diff: ${neuralGuess - correct}")
-        i += 0.5
-    }
-    */
+    val best: Net = pool.maxBy { it.fitness }!!
+    println(best)
+    dataset.testAccuracy(best)
 }
