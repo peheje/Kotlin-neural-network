@@ -14,12 +14,12 @@ class WineDataset : Dataset() {
 
         // Read wine data
         val xs = mutableListOf<DoubleArray>()
-        val ys = mutableListOf<DoubleArray>()
+        val ys = mutableListOf<Int>()
 
         CsvParser.stream(FileReader("datasets/wine.data")).use { stream ->
             stream.forEach { row ->
                 xs.add(DoubleArray(13) { i -> row[i + 1].toDouble() })
-                ys.add(DoubleArray(1) { _ -> row.first().toDouble() - 1.0 })    // Zero index it
+                ys.add(row.first().toInt() - 1)    // Zero index it
             }
         }
 

@@ -1,6 +1,7 @@
 package neural
 
 import koma.*
+import org.nd4j.linalg.api.ops.impl.transforms.Xor
 import random
 import java.time.Duration
 import java.time.Instant
@@ -17,8 +18,9 @@ fun neuralNetworkRunner() {
     val poolsize = 5_000L
     val parentInheritance = 0.2
     val batchSize = 4
+    val regularizationStrength = 0.001
 
-    val dataset = WineDataset()
+    val dataset = XorDataset()
     val layerSetup = arrayListOf(dataset.numInputs, 8, 4, 4, dataset.numOutputs)
 
     //val mutatePowers = linspace(0.40, 0.40, 1).toList()
@@ -39,6 +41,7 @@ fun neuralNetworkRunner() {
                 crossoverProp = crossoverProp,
                 crossoverRate = crossoverRate,
                 parentInheritance = parentInheritance,
+                gamma = regularizationStrength,
                 batchSize = batchSize,
                 plot = true,
                 color = color,
@@ -61,6 +64,7 @@ private fun geneticNeural(poolsize: Long,
                           crossoverRate: Double,
                           parentInheritance: Double,
                           batchSize: Int,
+                          gamma: Double,
                           plot: Boolean,
                           color: String,
                           timeInSeconds: Int,
@@ -78,7 +82,7 @@ private fun geneticNeural(poolsize: Long,
 
     // Algorithm go
     val starts = Instant.now()
-    var pool = Stream.generate { Net(trainingXs, trainingYs, layerSetup, parentInheritance) }.parallel().limit(poolsize).collect(toList())
+    var pool = Stream.generate { Net(trainingXs, trainingYs, layerSetup, parentInheritance, gamma) }.parallel().limit(poolsize).collect(toList())
     while (Duration.between(starts, Instant.now()).seconds < timeInSeconds) {
         Net.computeWheel(pool)
         when (strategy) {
@@ -86,7 +90,7 @@ private fun geneticNeural(poolsize: Long,
                 val nextGen = Stream.generate { Net.pick(pool) }.parallel().limit(poolsize).map {
                     if (random() < crossoverProp) it.crossover(pool, crossoverRate)
                     if (random() < mutateProp) it.mutate(mutateFreq, mutatePower)
-                    it.computeFitness(trainingXs, trainingYs, parentInheritance, batchSize)
+                    it.computeFitness(trainingXs, trainingYs, parentInheritance, gamma, batchSize)
                     it
                 }.collect(toList())
                 pool = nextGen
@@ -94,7 +98,7 @@ private fun geneticNeural(poolsize: Long,
             1 -> {
                 val nextGen = Stream.generate { Net.pick(pool) }.parallel().limit(poolsize).map {
                     Net.crossoverAndMutate(it, pool, crossoverProp, crossoverRate, mutateProp, mutateFreq, mutatePower)
-                    it.computeFitness(trainingXs, trainingYs, parentInheritance, batchSize)
+                    it.computeFitness(trainingXs, trainingYs, parentInheritance, gamma, batchSize)
                     it
                 }.collect(toList())
                 pool = nextGen

@@ -8,10 +8,10 @@ class XorDataset : Dataset() {
 
     override fun getData(): Data {
         val trainingXs = listOf(doubleArrayOf(1.0, 1.0), doubleArrayOf(1.0, 0.0), doubleArrayOf(0.0, 1.0), doubleArrayOf(0.0, 0.0))
-        val trainingYs = listOf(doubleArrayOf(0.0), doubleArrayOf(1.0), doubleArrayOf(1.0), doubleArrayOf(0.0))
+        val trainingYs = listOf(0, 1, 1, 0)
 
         testXs = listOf(doubleArrayOf(1.0, 1.0), doubleArrayOf(1.0, 0.0), doubleArrayOf(0.0, 1.0), doubleArrayOf(0.0, 0.0))
-        testYs = listOf(doubleArrayOf(0.0), doubleArrayOf(1.0), doubleArrayOf(1.0), doubleArrayOf(0.0))
+        testYs = listOf(0, 1, 1, 0)
 
         return Data(trainingXs, trainingYs)
     }

@@ -13,17 +13,17 @@ class IrisDataset : Dataset() {
     override fun getData(): Data {
         // Read iris data
         val nameMap = mapOf(
-                "Iris-virginica" to 0.0,
-                "Iris-versicolor" to 1.0,
-                "Iris-setosa" to 2.0)
+                "Iris-virginica" to 0,
+                "Iris-versicolor" to 1,
+                "Iris-setosa" to 2)
 
         val xs = mutableListOf<DoubleArray>()
-        val ys = mutableListOf<DoubleArray>()
+        val ys = mutableListOf<Int>()
 
         CsvParser.stream(FileReader("datasets/iris.data")).use { stream ->
             stream.forEach { row ->
                 xs.add(DoubleArray(4) { i -> row[i].toDouble() })
-                ys.add(DoubleArray(1) { _ -> nameMap[row.last()]!! })
+                ys.add(nameMap[row.last()]!!)
             }
         }
 

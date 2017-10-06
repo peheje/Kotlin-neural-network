@@ -7,10 +7,10 @@ class Net {
     val layers: List<Layer>
     var fitness: Double = 0.0
 
-    constructor(trainingXs: List<DoubleArray>, trainingYs: List<DoubleArray>, layerSetup: List<Int>, parentInheritance: Double) {
+    constructor(trainingXs: List<DoubleArray>, trainingYs: List<Int>, layerSetup: List<Int>, parentInheritance: Double, gamma: Double) {
         val lastLayerIdx = layerSetup.size - 2  // -2 as last is output size
         layers = (0 until layerSetup.size - 1).map { Layer(layerSetup[it], layerSetup[it + 1], it == lastLayerIdx) }
-        computeFitness(trainingXs, trainingYs, parentInheritance)
+        computeFitness(trainingXs, trainingYs, parentInheritance, gamma)
     }
 
     private constructor(layers: List<Layer>, fitness: Double) {
@@ -28,14 +28,14 @@ class Net {
         return layerOutput
     }
 
-    fun computeFitness(trainingXs: List<DoubleArray>, trainingYs: List<DoubleArray>, parentInheritance: Double, batchSize: Int = 0) {
+    fun computeFitness(trainingXs: List<DoubleArray>, trainingYs: List<Int>, parentInheritance: Double, gamma: Double, batchSize: Int = 0) {
         var xs = trainingXs
         var ys = trainingYs
         val clippedBatchsize = Math.min(batchSize, xs.size)
 
         if (clippedBatchsize != 0) {
             val batchXs = mutableListOf<DoubleArray>()
-            val batchYs = mutableListOf<DoubleArray>()
+            val batchYs = mutableListOf<Int>()
             for (i in 0 until clippedBatchsize) {
                 val r = ThreadLocalRandom.current().nextInt(xs.size)
                 batchXs.add(xs[r])
@@ -45,12 +45,11 @@ class Net {
             ys = batchYs
         }
 
-        var dataLoss = (0 until xs.size).sumByDouble { softmaxLoss( xs[it], ys[it]) }
+        var dataLoss = (0 until xs.size).sumByDouble { softmaxLoss(xs[it], ys[it]) }
         dataLoss *= dataLoss
         //dataLoss /= xs.size
 
         // Todo move to crossoverAndMutate?
-        val gamma = 0.001
         var regularizationLoss = 0.0
         for (layer in layers)
             for (neuron in layer.neurons)
@@ -116,12 +115,11 @@ class Net {
         }
     }
 
-    private fun svmLoss(xs: DoubleArray, ys: DoubleArray): Double {
+    private fun svmLoss(xs: DoubleArray, correctIndex: Int): Double {
         val netOutput = this(xs)
-        val correctIdx = ys.first().toInt()
-        val correctScore = netOutput[correctIdx]
+        val correctScore = netOutput[correctIndex]
         return (0 until netOutput.size)
-                .filter { it != correctIdx }
+                .filter { it != correctIndex }
                 .sumByDouble { Math.max(0.0, netOutput[it] - correctScore + 1.0) }
     }
 
@@ -132,9 +130,8 @@ class Net {
         return DoubleArray(netOutput.size) { i -> Math.exp(netOutput[i]) / sum }
     }
 
-    private fun softmaxLoss(xs: DoubleArray, ys: DoubleArray): Double {
+    private fun softmaxLoss(xs: DoubleArray, correctIndex: Int): Double {
         val netOutput = this(xs)
-        val correctIndex = ys.first().toInt()
         val sm = softmax(netOutput)[correctIndex]
         return -Math.log(sm)
     }

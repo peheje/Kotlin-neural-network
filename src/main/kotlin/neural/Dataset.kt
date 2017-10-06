@@ -1,18 +1,18 @@
 package neural
 
 data class Data(val trainingXs: List<DoubleArray>,
-                val trainingYs: List<DoubleArray>)
+                val trainingYs: List<Int>)
 
 
 abstract class Dataset {
     abstract fun getData(): Data
     lateinit var testXs: List<DoubleArray>
-    lateinit var testYs: List<DoubleArray>
+    lateinit var testYs: List<Int>
 
     fun testAccuracy(best: Net): Double {
         var nCorrect = 0
         for ((i, testX) in testXs.withIndex()) {
-            val correct = Math.round(testYs[i].first()).toInt()
+            val correct = testYs[i]
             val neuralGuesses: DoubleArray = best(testX)
             val bestGuess = neuralGuesses.indexOf(neuralGuesses.max()!!)
             println("Net guess $bestGuess correct $correct")
