@@ -14,10 +14,12 @@ fun neuralNetworkRunner() {
     val mutatePower = 2.0
     val crossoverProp = 0.03
     val crossoverRate = 0.4
-    val poolsize = 5000L
-    val parentInheritance = 0.1
-    val batchSize = 8
-    val layerSetup = arrayListOf(4, 8, 4, 3)
+    val poolsize = 10_000L
+    val parentInheritance = 0.8
+    val batchSize = 2
+
+    val dataset = WineDataset()
+    val layerSetup = arrayListOf(dataset.numInputs, 16, 8, 4, dataset.numOutputs)
 
     //val mutatePowers = linspace(0.40, 0.40, 1).toList()
     //val mutateProps = linspace(0.35, 0.35, 1).toList()
@@ -40,10 +42,10 @@ fun neuralNetworkRunner() {
                 batchSize = batchSize,
                 plot = true,
                 color = color,
-                timeInSeconds = 5,
+                timeInSeconds = 60,
                 strategy = strategy,
                 layerSetup = layerSetup,
-                dataset = IrisDataset()
+                dataset = dataset
         )
     }
 }
@@ -94,7 +96,7 @@ private fun geneticNeural(poolsize: Long,
 
         if (generation++ % 100 == 0) {
             println("$generation: " + pool.maxBy { it.fitness })
-            println("startMutateProp $mutateProp startMutatePower $mutatePower")
+            println("mutateProp $mutateProp mutatePower $mutatePower")
         }
         if (plot) {
             x.add(Duration.between(starts, Instant.now()).toMillis().toDouble())

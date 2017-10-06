@@ -22,4 +22,7 @@ abstract class Dataset {
         println("Correct test-set classifications $nCorrect / ${testXs.size}")
         return accuracy
     }
+
+    abstract val numInputs: Int
+    abstract val numOutputs: Int
 }
