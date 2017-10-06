@@ -29,10 +29,10 @@ fun neuralNetworkRunner() {
     for ((color, strategy) in plotColors.keys.zip(listOf(0))) {
         geneticNeural(
                 poolsize = poolsize,
-                mutateProp = mutateProp,
+                startMutateProp = mutateProp,
                 mutatePropDecay = 0.9995,
                 mutateFreq = mutateFreq,
-                mutatePower = mutatePower,
+                startMutatePower = mutatePower,
                 mutatePowerDecay = 0.9997,
                 crossoverProp = crossoverProp,
                 crossoverRate = crossoverRate,
@@ -40,20 +40,20 @@ fun neuralNetworkRunner() {
                 batchSize = batchSize,
                 plot = true,
                 color = color,
-                timeInSeconds = 20,
+                timeInSeconds = 5,
                 strategy = strategy,
                 layerSetup = layerSetup,
-                dataset = XorDataset()
+                dataset = IrisDataset()
         )
     }
 }
 
 
 private fun geneticNeural(poolsize: Long,
-                          mutateProp: Double,
+                          startMutateProp: Double,
                           mutatePropDecay: Double,
                           mutateFreq: Double,
-                          mutatePower: Double,
+                          startMutatePower: Double,
                           mutatePowerDecay: Double,
                           crossoverProp: Double,
                           crossoverRate: Double,
@@ -69,13 +69,11 @@ private fun geneticNeural(poolsize: Long,
     val x = mutableListOf<Double>()
     val y = mutableListOf<Double>()
     var generation = 0
-    val origMutateProp = mutateProp
-    val origMutatePower = mutatePower
-    var mutateProp = mutateProp
-    var mutatePower = mutatePower
+    var mutateProp = startMutateProp
+    var mutatePower = startMutatePower
 
     val (trainingXs, trainingYs) = dataset.getData()
-//
+
     // Algorithm go
     val starts = Instant.now()
     var pool = Stream.generate { Net(trainingXs, trainingYs, layerSetup, parentInheritance) }.parallel().limit(poolsize).collect(toList())
@@ -96,7 +94,7 @@ private fun geneticNeural(poolsize: Long,
 
         if (generation++ % 100 == 0) {
             println("$generation: " + pool.maxBy { it.fitness })
-            println("mutateProp $mutateProp mutatePower $mutatePower")
+            println("startMutateProp $mutateProp startMutatePower $mutatePower")
         }
         if (plot) {
             x.add(Duration.between(starts, Instant.now()).toMillis().toDouble())
@@ -109,13 +107,13 @@ private fun geneticNeural(poolsize: Long,
         plotArrays(x.toDoubleArray(), y.toDoubleArray(), color,
                 lineLabel = "bs $batchSize" +
                         "str $strategy" +
-                        "mp $origMutateProp," +
+                        " mpr $startMutateProp," +
                         " cr $crossoverRate " +
                         " cp $crossoverProp" +
                         " mf $mutateFreq" +
                         " mpd $mutatePropDecay" +
                         " ps $poolsize" +
-                        " mp $origMutatePower"
+                        " mpo $startMutatePower"
         )
         xlabel("Miliseconds")
         ylabel("Fitness")
