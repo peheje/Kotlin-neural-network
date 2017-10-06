@@ -1,5 +1,6 @@
 package neural
 
+import org.nd4j.linalg.api.ops.impl.transforms.SoftMax
 import random
 import java.util.concurrent.ThreadLocalRandom
 
@@ -10,7 +11,7 @@ class Net {
     constructor(trainingXs: List<DoubleArray>, trainingYs: List<Int>, layerSetup: List<Int>, parentInheritance: Double, gamma: Double) {
         val lastLayerIdx = layerSetup.size - 2  // -2 as last is output size
         layers = (0 until layerSetup.size - 1).map { Layer(layerSetup[it], layerSetup[it + 1], it == lastLayerIdx) }
-        computeFitness(trainingXs, trainingYs, parentInheritance, gamma)
+        computeFitness(trainingXs, trainingYs, parentInheritance, gamma, batchSize = -1)
     }
 
     private constructor(layers: List<Layer>, fitness: Double) {
@@ -28,15 +29,16 @@ class Net {
         return layerOutput
     }
 
-    fun computeFitness(trainingXs: List<DoubleArray>, trainingYs: List<Int>, parentInheritance: Double, gamma: Double, batchSize: Int = 0) {
+    fun computeFitness(trainingXs: List<DoubleArray>, trainingYs: List<Int>, parentInheritance: Double, gamma: Double, batchSize: Int) {
         var xs = trainingXs
         var ys = trainingYs
         val clippedBatchsize = Math.min(batchSize, xs.size)
 
-        if (clippedBatchsize != 0) {
+        if (clippedBatchsize != -1) {
             val batchXs = mutableListOf<DoubleArray>()
             val batchYs = mutableListOf<Int>()
-            for (i in 0 until clippedBatchsize) {
+            while (batchXs.size < clippedBatchsize) {
+                // Todo diversity in batch
                 val r = ThreadLocalRandom.current().nextInt(xs.size)
                 batchXs.add(xs[r])
                 batchYs.add(ys[r])
@@ -45,20 +47,18 @@ class Net {
             ys = batchYs
         }
 
-        var dataLoss = (0 until xs.size).sumByDouble { softmaxLoss(xs[it], ys[it]) }
-        dataLoss *= dataLoss
-        //dataLoss /= xs.size
+        val dataLoss = (0 until xs.size).sumByDouble { svmLoss(xs[it], ys[it]) } / xs.size
 
-        // Todo move to crossoverAndMutate?
+        /*// Todo move to crossoverAndMutate?
         var regularizationLoss = 0.0
         for (layer in layers)
             for (neuron in layer.neurons)
                 for (weight in neuron.weights)
                     regularizationLoss += weight*weight
 
-        val loss = dataLoss + gamma * regularizationLoss
+        val loss = dataLoss + gamma * regularizationLoss*/
 
-        val batchFitness = 1.0 / loss
+        val batchFitness = 1.0 / (dataLoss + 0.0001)
         val parentFitness = fitness
         fitness = parentFitness * parentInheritance + batchFitness
     }
@@ -131,6 +131,7 @@ class Net {
     }
 
     private fun softmaxLoss(xs: DoubleArray, correctIndex: Int): Double {
+        throw Exception("please triple check implementation")
         val netOutput = this(xs)
         val sm = softmax(netOutput)[correctIndex]
         return -Math.log(sm)

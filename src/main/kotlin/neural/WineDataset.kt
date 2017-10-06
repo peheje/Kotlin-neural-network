@@ -35,12 +35,12 @@ class WineDataset : Dataset() {
 
         // Create training set and test set
         //val seed = System.nanoTime()
-        val seed = 43L
+        val seed = 86512L
         Collections.shuffle(xs, Random(seed))
         Collections.shuffle(ys, Random(seed))
 
-        val total = 178
-        val testSize = 10
+        val total = xs.size
+        val testSize = 20
 
         val trainingXs = xs.take(total-testSize)
         val trainingYs = ys.take(total-testSize)
