@@ -20,7 +20,7 @@ fun neuralNetworkRunner() {
     val batchSize = 4
     val regularizationStrength = 0.001
 
-    val dataset = XorDataset()
+    val dataset = WineDataset()
     val layerSetup = arrayListOf(dataset.numInputs, 8, 4, 4, dataset.numOutputs)
 
     //val mutatePowers = linspace(0.40, 0.40, 1).toList()

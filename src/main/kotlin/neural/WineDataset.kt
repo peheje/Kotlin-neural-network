@@ -3,6 +3,7 @@ package neural
 import org.simpleflatmapper.csv.CsvParser
 import java.io.FileReader
 import java.util.*
+import java.util.concurrent.ThreadLocalRandom
 
 class WineDataset : Dataset() {
     override val numInputs: Int
@@ -23,6 +24,8 @@ class WineDataset : Dataset() {
             }
         }
 
+        bootstrap(xs, ys)
+
         // Zero Normalize
         val nFeatures = xs.first().size
         for (featureId in 0 until nFeatures) {
@@ -32,7 +35,7 @@ class WineDataset : Dataset() {
 
         // Create training set and test set
         //val seed = System.nanoTime()
-        val seed = 42L
+        val seed = 43L
         Collections.shuffle(xs, Random(seed))
         Collections.shuffle(ys, Random(seed))
 
