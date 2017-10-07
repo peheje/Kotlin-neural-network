@@ -9,18 +9,21 @@ import java.util.stream.Stream
 
 
 fun neuralNetworkRunner() {
-    val mutateProp = 0.35
-    val mutateFreq = 0.25
-    val mutatePower = 2.0
-    val crossoverProp = 0.03
-    val crossoverRate = 0.4
-    val poolsize = 5_000L
-    val parentInheritance = 0.2
-    val batchSize = 4
-    val regularizationStrength = 0.001
+    val mutateProp = 0.25
+    val mutateFreq = 0.15
+    val mutatePower = 1.0
+    val mutatePowerDecay = 0.999
 
-    val dataset = IrisDataset()
-    val layerSetup = arrayListOf(dataset.numInputs, 8, 4, 4, dataset.numOutputs)
+    val crossoverProp = 0.05
+    val crossoverRate = 0.4
+
+    val poolsize = 5_000L
+    val parentInheritance = 0.8
+    val batchSize = 8
+    val regularizationStrength = 0.0
+
+    val dataset = WineDataset()
+    val layerSetup = arrayListOf(dataset.numInputs, 8, 4, dataset.numOutputs)
 
     //val mutatePowers = linspace(0.40, 0.40, 1).toList()
     //val mutateProps = linspace(0.35, 0.35, 1).toList()
@@ -36,7 +39,7 @@ fun neuralNetworkRunner() {
                 mutatePropDecay = 0.9995,
                 mutateFreq = mutateFreq,
                 startMutatePower = mutatePower,
-                mutatePowerDecay = 0.9997,
+                mutatePowerDecay = mutatePowerDecay,
                 crossoverProp = crossoverProp,
                 crossoverRate = crossoverRate,
                 parentInheritance = parentInheritance,

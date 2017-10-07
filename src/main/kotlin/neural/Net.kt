@@ -30,18 +30,19 @@ class Net {
     }
 
     fun computeFitness(xs: List<DoubleArray>, ys: List<Int>, parentInheritance: Double, gamma: Double) {
-        val dataLoss = (0 until xs.size).sumByDouble { svmLoss(xs[it], ys[it]) } / xs.size
+        //val dataLoss = (0 until xs.size).sumByDouble { svmLoss(xs[it], ys[it]) } / xs.size
+        //val batchFitness = 1.0 / (dataLoss + 0.0001)
 
-        /*// Todo move to crossoverAndMutate?
+        // Todo move to crossoverAndMutate?
         var regularizationLoss = 0.0
         for (layer in layers)
             for (neuron in layer.neurons)
                 for (weight in neuron.weights)
                     regularizationLoss += weight*weight
 
-        val loss = dataLoss + gamma * regularizationLoss*/
+        regularizationLoss *= gamma
 
-        val batchFitness = 1.0 / (dataLoss + 0.0001)
+        val batchFitness = nCorrectPredictions(xs, ys) / xs.size + regularizationLoss
         val parentFitness = fitness
         fitness = parentFitness * parentInheritance + batchFitness
     }
@@ -113,6 +114,17 @@ class Net {
             }
             return Pair(batchXs, batchYs)
         }
+    }
+
+    private fun nCorrectPredictions(xs: List<DoubleArray>, ys: List<Int>): Int {
+        var nCorrect = 0
+        for ((i, x) in xs.withIndex()) {
+            val correct = ys[i]
+            val neuralGuesses: DoubleArray = this(x)
+            val bestGuess = neuralGuesses.indexOf(neuralGuesses.max()!!)
+            if (bestGuess == correct) nCorrect++
+        }
+        return nCorrect
     }
 
     private fun svmLoss(xs: DoubleArray, correctIndex: Int): Double {
