@@ -9,17 +9,17 @@ import java.util.stream.Stream
 
 
 fun neuralNetworkRunner() {
-    val mutateProp = 0.25
-    val mutateFreq = 0.15
-    val mutatePower = 1.0
+    val mutateProp = 0.35
+    val mutateFreq = 0.25
+    val mutatePower = 2.0
     val mutatePowerDecay = 0.999
 
     val crossoverProp = 0.05
     val crossoverRate = 0.4
 
-    val poolsize = 5_000L
-    val parentInheritance = 0.8
-    val batchSize = 8
+    val poolsize = 10_000L
+    val parentInheritance = 0.0
+    val batchSize = 2
     val regularizationStrength = 0.0
 
     val dataset = WineDataset()
@@ -47,7 +47,7 @@ fun neuralNetworkRunner() {
                 batchSize = batchSize,
                 plot = true,
                 color = color,
-                timeInSeconds = 10,
+                timeInSeconds = 20,
                 strategy = strategy,
                 layerSetup = layerSetup,
                 dataset = dataset
@@ -87,9 +87,8 @@ private fun geneticNeural(poolsize: Long,
     var pool = Stream.generate { Net(trainingXs, trainingYs, layerSetup, parentInheritance, gamma) }.parallel().limit(poolsize).collect(toList())
     while (Duration.between(starts, Instant.now()).seconds < timeInSeconds) {
         Net.computeWheel(pool)
-        val (bxs, bys) = Net.createBatch(trainingXs, trainingYs, batchSize)
-
         val nextGen = Stream.generate { Net.pick(pool) }.parallel().limit(poolsize).map {
+            val (bxs, bys) = Net.createBatch(trainingXs, trainingYs, batchSize)
             if (random() < crossoverProp) it.crossover(pool, crossoverRate)
             if (random() < mutateProp) it.mutate(mutateFreq, mutatePower)
             it.computeFitness(bxs, bys, parentInheritance, gamma)

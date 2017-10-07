@@ -30,19 +30,18 @@ class Net {
     }
 
     fun computeFitness(xs: List<DoubleArray>, ys: List<Int>, parentInheritance: Double, gamma: Double) {
-        //val dataLoss = (0 until xs.size).sumByDouble { svmLoss(xs[it], ys[it]) } / xs.size
-        //val batchFitness = 1.0 / (dataLoss + 0.0001)
-
         // Todo move to crossoverAndMutate?
         var regularizationLoss = 0.0
-        for (layer in layers)
-            for (neuron in layer.neurons)
-                for (weight in neuron.weights)
-                    regularizationLoss += weight*weight
+        if (gamma != 0.0) {
+            for (layer in layers)
+                for (neuron in layer.neurons)
+                    for (weight in neuron.weights)
+                        regularizationLoss += weight * weight
+        }
 
         regularizationLoss *= gamma
 
-        val batchFitness = nCorrectPredictions(xs, ys) / xs.size + regularizationLoss
+        val batchFitness = Math.max(0.0, (nCorrectPredictions(xs, ys) / xs.size) - regularizationLoss)
         val parentFitness = fitness
         fitness = parentFitness * parentInheritance + batchFitness
     }

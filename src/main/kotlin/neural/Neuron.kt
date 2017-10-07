@@ -25,8 +25,8 @@ class Neuron {
         return if (lastLayer)
             sum
         else
-            //Math.tanh(sum) // tanh
-            return Math.max(sum, 0.0) // Relu
+            Math.tanh(sum) // tanh
+            //return Math.max(sum, 0.0) // Relu
             //return 1.0 / (1.0 + Math.exp(-sum)) // Sigmoid
     }
 

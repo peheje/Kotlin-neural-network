@@ -1,5 +1,6 @@
 package neural
 
+import java.util.*
 import java.util.concurrent.ThreadLocalRandom
 
 data class Data(val trainingXs: List<DoubleArray>,
@@ -27,6 +28,21 @@ abstract class Dataset {
         return accuracy
     }
 
+    fun zeroNormalize(xs: MutableList<DoubleArray>) {
+        val nFeatures = xs.first().size
+        for (featureId in 0 until nFeatures) {
+            val avg = xs.sumByDouble { it[featureId] } / xs.size
+            for (i in 0 until nFeatures) xs[featureId][i] -= avg
+        }
+    }
+
+    fun shuffle(xs: MutableList<DoubleArray>, ys: MutableList<Int>) {
+        // Create training set and test set
+        val seed = System.nanoTime()
+        //val seed = 86512L
+        Collections.shuffle(xs, Random(seed))
+        Collections.shuffle(ys, Random(seed))
+    }
 
     fun bootstrap(xs: MutableList<DoubleArray>, ys: MutableList<Int>) {
         val sizes = (0 until numOutputs).map { i -> ys.filter { it == i }.size }

@@ -28,9 +28,8 @@ class IrisDataset : Dataset() {
         }
 
         // Create training set and test set
-        val seed = System.nanoTime()
-        Collections.shuffle(xs, Random(seed))
-        Collections.shuffle(ys, Random(seed))
+
+        shuffle(xs, ys)
 
         val trainingXs = xs.take(130)
         val trainingYs = ys.take(130)
