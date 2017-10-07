@@ -12,13 +12,13 @@ fun neuralNetworkRunner() {
     val mutateProp = 0.35
     val mutateFreq = 0.25
     val mutatePower = 1.0
-    val mutatePowerDecay = 0.999
+    val mutatePowerDecay = 0.9995
 
     val crossoverProp = 0.20
     val crossoverRate = 0.5
 
-    val poolsize = 5_000L
-    val parentInheritance = 0.0
+    val poolsize = 10_000L
+    val parentInheritance = 0.8
     val batchSize = 8
     val regularizationStrength = 0.0
 
@@ -47,7 +47,7 @@ fun neuralNetworkRunner() {
                 batchSize = batchSize,
                 plot = true,
                 color = color,
-                timeInSeconds = 10,
+                timeInSeconds = 60*5,
                 strategy = strategy,
                 layerSetup = layerSetup,
                 dataset = dataset

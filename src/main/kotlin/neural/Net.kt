@@ -41,7 +41,7 @@ class Net {
 
         regularizationLoss *= gamma
 
-        val dataLoss = (0 until xs.size).sumByDouble { softmaxLoss(xs[it], ys[it]) } / (xs.size + 0.0091)
+        val dataLoss = (0 until xs.size).sumByDouble { softmaxLoss(xs[it], ys[it]) } / (xs.size + 0.0001)
         val correctFitness = nCorrectPredictions(xs, ys) / (xs.size + 0.0001)
 
         var batchfitness = correctFitness - regularizationLoss - dataLoss
