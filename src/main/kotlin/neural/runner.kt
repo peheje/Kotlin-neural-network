@@ -14,16 +14,16 @@ fun neuralNetworkRunner() {
     val mutatePower = 1.0
     val mutatePowerDecay = 0.999
 
-    val crossoverProp = 0.05
-    val crossoverRate = 0.4
+    val crossoverProp = 0.20
+    val crossoverRate = 0.5
 
-    val poolsize = 10_000L
-    val parentInheritance = 0.1
-    val batchSize = 2
+    val poolsize = 5_000L
+    val parentInheritance = 0.0
+    val batchSize = 8
     val regularizationStrength = 0.0
 
     val dataset = WineDataset()
-    val layerSetup = arrayListOf(dataset.numInputs, 8, 4, dataset.numOutputs)
+    val layerSetup = arrayListOf(dataset.numInputs, 8, 4, 4, dataset.numOutputs)
 
     //val mutatePowers = linspace(0.40, 0.40, 1).toList()
     //val mutateProps = linspace(0.35, 0.35, 1).toList()
@@ -47,7 +47,7 @@ fun neuralNetworkRunner() {
                 batchSize = batchSize,
                 plot = true,
                 color = color,
-                timeInSeconds = 20,
+                timeInSeconds = 10,
                 strategy = strategy,
                 layerSetup = layerSetup,
                 dataset = dataset

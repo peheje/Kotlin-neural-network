@@ -1,26 +1,25 @@
 package neural
 
-import org.nd4j.linalg.api.ops.impl.transforms.SoftMax
 import random
 import java.util.concurrent.ThreadLocalRandom
 
 class Net {
-    val layers: List<Layer>
+    val layers: MutableList<Layer>
     var fitness: Double = 0.0
 
     constructor(trainingXs: List<DoubleArray>, trainingYs: List<Int>, layerSetup: List<Int>, parentInheritance: Double, gamma: Double) {
         val lastLayerIdx = layerSetup.size - 2  // -2 as last is output size
-        layers = (0 until layerSetup.size - 1).map { Layer(layerSetup[it], layerSetup[it + 1], it == lastLayerIdx) }
+        layers = (0 until layerSetup.size - 1).map { Layer(layerSetup[it], layerSetup[it + 1], it == lastLayerIdx) }.toMutableList()
         computeFitness(trainingXs, trainingYs, parentInheritance, gamma)
     }
 
-    private constructor(layers: List<Layer>, fitness: Double) {
+    private constructor(layers: MutableList<Layer>, fitness: Double) {
         this.layers = layers
         this.fitness = fitness
     }
 
     private fun copy(): Net {
-        return Net(List(layers.size) { i -> layers[i].copy() }, fitness)
+        return Net(MutableList(layers.size) { i -> layers[i].copy() }, fitness)
     }
 
     operator fun invoke(inputs: DoubleArray): DoubleArray {
@@ -42,8 +41,8 @@ class Net {
 
         regularizationLoss *= gamma
 
-        val dataLoss = (0 until xs.size).sumByDouble { softmaxLoss(xs[it], ys[it]) } / xs.size
-        val correctFitness = (nCorrectPredictions(xs, ys) / xs.size)
+        val dataLoss = (0 until xs.size).sumByDouble { softmaxLoss(xs[it], ys[it]) } / (xs.size + 0.0091)
+        val correctFitness = nCorrectPredictions(xs, ys) / (xs.size + 0.0001)
 
         var batchfitness = correctFitness - regularizationLoss - dataLoss
         batchfitness = Math.max(0.0, batchfitness)
@@ -61,13 +60,23 @@ class Net {
         return sb.toString()
     }
 
-    fun crossover(pool: List<Net>, crossoverRate: Double) {
+    fun crossover2(pool: List<Net>, crossoverRate: Double) {
         val mate = pick(pool)
         for ((layerIdx, layer) in layers.withIndex()) {
             for ((neuronIdx, neuron) in layer.neurons.withIndex()) {
                 neuron.crossover(mate, layerIdx, neuronIdx, crossoverRate)
             }
         }
+    }
+
+    fun crossover(pool: List<Net>, crossoverRate: Double) {
+        val mate = pick(pool)
+        for (i in 0 until layers.size)
+            if (random() < crossoverRate) {
+                val tmp = layers[i]
+                layers[i] = mate.layers[i]
+                mate.layers[i] = tmp
+            }
     }
 
     fun mutate(mutateFreq: Double, mutatePower: Double) {
