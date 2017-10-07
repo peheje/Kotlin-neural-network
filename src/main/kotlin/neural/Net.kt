@@ -1,6 +1,5 @@
 package neural
 
-import org.nd4j.linalg.api.ops.impl.transforms.SoftMax
 import random
 import java.util.concurrent.ThreadLocalRandom
 
@@ -11,7 +10,7 @@ class Net {
     constructor(trainingXs: List<DoubleArray>, trainingYs: List<Int>, layerSetup: List<Int>, parentInheritance: Double, gamma: Double) {
         val lastLayerIdx = layerSetup.size - 2  // -2 as last is output size
         layers = (0 until layerSetup.size - 1).map { Layer(layerSetup[it], layerSetup[it + 1], it == lastLayerIdx) }
-        computeFitness(trainingXs, trainingYs, parentInheritance, gamma, batchSize = -1)
+        computeFitnessBasedOnLoss(trainingXs, trainingYs, parentInheritance, gamma)
     }
 
     private constructor(layers: List<Layer>, fitness: Double) {
@@ -29,23 +28,28 @@ class Net {
         return layerOutput
     }
 
-    fun computeFitness(trainingXs: List<DoubleArray>, trainingYs: List<Int>, parentInheritance: Double, gamma: Double, batchSize: Int) {
-        var xs = trainingXs
-        var ys = trainingYs
-        val clippedBatchsize = Math.min(batchSize, xs.size)
+    private fun createBatch(xs: List<DoubleArray>, ys: List<Int>, batchSize: Int): Pair<List<DoubleArray>, List<Int>> {
+        val clippedBatchSize = if (batchSize == 0)
+            xs.size
+        else
+            Math.min(batchSize, xs.size)
 
-        if (clippedBatchsize != -1) {
-            val batchXs = mutableListOf<DoubleArray>()
-            val batchYs = mutableListOf<Int>()
-            while (batchXs.size < clippedBatchsize) {
-                // Todo diversity in batch
-                val r = ThreadLocalRandom.current().nextInt(xs.size)
-                batchXs.add(xs[r])
-                batchYs.add(ys[r])
-            }
-            xs = batchXs
-            ys = batchYs
+        val batchXs = mutableListOf<DoubleArray>()
+        val batchYs = mutableListOf<Int>()
+        while (batchXs.size < clippedBatchSize) {
+            // Todo diversity in batch
+            val r = ThreadLocalRandom.current().nextInt(xs.size)
+            batchXs.add(xs[r])
+            batchYs.add(ys[r])
         }
+        return Pair(xs, ys)
+    }
+
+    private fun computeFitnessBasedOnLoss(trainingXs: List<DoubleArray>,
+                                          trainingYs: List<Int>,
+                                          parentInheritance: Double,
+                                          gamma: Double) {
+        val (xs, ys) = createBatch(trainingXs, trainingYs, batchSize = 0)
 
         val dataLoss = (0 until xs.size).sumByDouble { svmLoss(xs[it], ys[it]) } / xs.size
 
@@ -73,18 +77,42 @@ class Net {
         return sb.toString()
     }
 
-    fun crossover(pool: List<Net>, crossoverRate: Double) {
-        for ((layerIdx, layer) in layers.withIndex()) {
-            for ((neuronIdx, neuron) in layer.neurons.withIndex()) {
-                neuron.crossover(pool, layerIdx, neuronIdx, crossoverRate)
-            }
-        }
+    fun calculateSexualFitness(mate: Net, xs: List<DoubleArray>, ys: List<Int>, batchSize: Int, inheritanceDecay: Double) {
+        val (batchXs, batchYs) = createBatch(xs, ys, batchSize)
+
+        val batchLoss = (0 until xs.size).sumByDouble { svmLoss(batchXs[it], batchYs[it]) } / batchXs.size
+        val ratio = 1.0 / (xs.size - batchXs.size + 1)
+        val batchFitness = ratio / batchLoss
+
+        val newFitness = ((fitness + mate.fitness)/2) * (1 - inheritanceDecay) + batchFitness
+        fitness = newFitness
     }
 
-    fun mutate(mutateFreq: Double, mutatePower: Double) {
+    fun calculateAsexualFitness(xs: List<DoubleArray>, ys: List<Int>, batchSize: Int, inheritanceDecay: Double) {
+        val (batchXs, batchYs) = createBatch(xs, ys, batchSize)
+
+        val batchLoss = (0 until xs.size).sumByDouble { svmLoss(batchXs[it], batchYs[it]) } / batchXs.size
+        val ratio = 1.0 / (xs.size - batchXs.size + 1)
+        val batchFitness = ratio / batchLoss
+
+        val newFitness = fitness * (1 - inheritanceDecay) + batchFitness
+        fitness = newFitness
+    }
+
+    fun crossover(pool: List<Net>, crossoverPower: Double): Net {
+        val mate = Net.pick(pool)
+        for ((layerIdx, layer) in layers.withIndex()) {
+            for ((neuronIdx, neuron) in layer.neurons.withIndex()) {
+                neuron.crossover(mate, layerIdx, neuronIdx, crossoverPower)
+            }
+        }
+        return mate
+    }
+
+    fun mutate(mutatePower: Double) {
         for (layer in layers) {
             for (neuron in layer.neurons) {
-                neuron.mutate(mutatePower, mutateFreq)
+                neuron.mutate(mutatePower)
             }
         }
     }
@@ -103,15 +131,6 @@ class Net {
             var idx = wheel.binarySearch(r)
             if (idx < 0) idx = -idx - 1
             return arr[idx].copy()
-        }
-
-        fun crossoverAndMutate(net: Net, pool: List<Net>, crossoverProp: Double, crossoverRate: Double, mutateProp: Double, mutateFreq: Double, mutatePower: Double) {
-            for ((layerIdx, layer) in net.layers.withIndex()) {
-                for ((neuronIdx, neuron) in layer.neurons.withIndex()) {
-                    if (random() < crossoverProp) neuron.crossover(pool, layerIdx, neuronIdx, crossoverRate)
-                    if (random() < mutateProp) neuron.mutate(mutatePower, mutateFreq)
-                }
-            }
         }
     }
 

@@ -1,7 +1,6 @@
 package neural
 
 import koma.*
-import org.nd4j.linalg.api.ops.impl.transforms.Xor
 import random
 import java.time.Duration
 import java.time.Instant
@@ -10,18 +9,21 @@ import java.util.stream.Stream
 
 
 fun neuralNetworkRunner() {
-    val mutateProp = 0.35
-    val mutateFreq = 0.25
-    val mutatePower = 2.0
-    val crossoverProp = 0.03
-    val crossoverRate = 0.4
-    val poolsize = 5_000L
-    val parentInheritance = 0.2
-    val batchSize = 4
-    val regularizationStrength = 0.001
+
+    val crossoverMutateRatio = 0.2
+
+    val crossoverPower = 1.0
+
+    val mutatePower = 1.10
+    val mutatePowerDecay = 0.99
+
+    val poolsize = 3_000L
+    val parentDecay = 0.2
+    val batchSize = 2
+    val regularizationStrength = 0.0
 
     val dataset = WineDataset()
-    val layerSetup = arrayListOf(dataset.numInputs, 8, 4, 4, dataset.numOutputs)
+    val layerSetup = arrayListOf(dataset.numInputs, 8, 4, dataset.numOutputs)
 
     //val mutatePowers = linspace(0.40, 0.40, 1).toList()
     //val mutateProps = linspace(0.35, 0.35, 1).toList()
@@ -33,14 +35,10 @@ fun neuralNetworkRunner() {
     for ((color, strategy) in plotColors.keys.zip(listOf(0))) {
         geneticNeural(
                 poolsize = poolsize,
-                startMutateProp = mutateProp,
-                mutatePropDecay = 0.9995,
-                mutateFreq = mutateFreq,
                 startMutatePower = mutatePower,
-                mutatePowerDecay = 0.9997,
-                crossoverProp = crossoverProp,
-                crossoverRate = crossoverRate,
-                parentInheritance = parentInheritance,
+                mutatePowerDecay = mutatePowerDecay,
+                crossoverPower = crossoverPower,
+                parentDecay = parentDecay,
                 gamma = regularizationStrength,
                 batchSize = batchSize,
                 plot = true,
@@ -48,21 +46,18 @@ fun neuralNetworkRunner() {
                 timeInSeconds = 30,
                 strategy = strategy,
                 layerSetup = layerSetup,
-                dataset = dataset
+                dataset = dataset,
+                crossoverMutateRatio = crossoverMutateRatio
         )
     }
 }
 
 
 private fun geneticNeural(poolsize: Long,
-                          startMutateProp: Double,
-                          mutatePropDecay: Double,
-                          mutateFreq: Double,
                           startMutatePower: Double,
                           mutatePowerDecay: Double,
-                          crossoverProp: Double,
-                          crossoverRate: Double,
-                          parentInheritance: Double,
+                          crossoverPower: Double,
+                          parentDecay: Double,
                           batchSize: Int,
                           gamma: Double,
                           plot: Boolean,
@@ -70,50 +65,42 @@ private fun geneticNeural(poolsize: Long,
                           timeInSeconds: Int,
                           strategy: Int,
                           layerSetup: List<Int>,
-                          dataset: Dataset) {
+                          dataset: Dataset,
+                          crossoverMutateRatio: Double) {
 
     val x = mutableListOf<Double>()
     val y = mutableListOf<Double>()
     var generation = 0
-    var mutateProp = startMutateProp
     var mutatePower = startMutatePower
 
-    val (trainingXs, trainingYs) = dataset.getData()
+    val (xs, ys) = dataset.getData()
 
     // Algorithm go
     val starts = Instant.now()
-    var pool = Stream.generate { Net(trainingXs, trainingYs, layerSetup, parentInheritance, gamma) }.parallel().limit(poolsize).collect(toList())
+    var pool = Stream.generate { Net(xs, ys, layerSetup, parentDecay, gamma) }.parallel().limit(poolsize).collect(toList())
     while (Duration.between(starts, Instant.now()).seconds < timeInSeconds) {
         Net.computeWheel(pool)
-        when (strategy) {
-            0 -> {
-                val nextGen = Stream.generate { Net.pick(pool) }.parallel().limit(poolsize).map {
-                    if (random() < crossoverProp) it.crossover(pool, crossoverRate)
-                    if (random() < mutateProp) it.mutate(mutateFreq, mutatePower)
-                    it.computeFitness(trainingXs, trainingYs, parentInheritance, gamma, batchSize)
-                    it
-                }.collect(toList())
-                pool = nextGen
+        val nextGen = Stream.generate { Net.pick(pool) }.parallel().limit(poolsize).map {
+            if (random() < crossoverMutateRatio) {
+                val mate = it.crossover(pool, crossoverPower)
+                it.calculateSexualFitness(mate, xs, ys, batchSize, parentDecay)
             }
-            1 -> {
-                val nextGen = Stream.generate { Net.pick(pool) }.parallel().limit(poolsize).map {
-                    Net.crossoverAndMutate(it, pool, crossoverProp, crossoverRate, mutateProp, mutateFreq, mutatePower)
-                    it.computeFitness(trainingXs, trainingYs, parentInheritance, gamma, batchSize)
-                    it
-                }.collect(toList())
-                pool = nextGen
+            else {
+                it.mutate(mutatePower)
+                it.calculateAsexualFitness(xs, ys, batchSize, parentDecay)
             }
-        }
-        if (mutatePower > 0.10)
+            it
+        }.collect(toList())
+        pool = nextGen
+
+        if (mutatePower > 0.01)
             mutatePower *= mutatePowerDecay
-        if (mutateProp > 0.05)
-            mutateProp *= mutatePropDecay
         // Algorithm end
 
         if (generation++ % 100 == 0) {
             val currentBest = pool.maxBy { it.fitness }
             println("$generation: ${currentBest?.fitness} $currentBest")
-            println("mutateProp $mutateProp mutatePower $mutatePower")
+            println(" mutatePower $mutatePower")
         }
         if (plot) {
             x.add(Duration.between(starts, Instant.now()).toMillis().toDouble())
@@ -125,12 +112,9 @@ private fun geneticNeural(poolsize: Long,
         figure(1)
         plotArrays(x.toDoubleArray(), y.toDoubleArray(), color,
                 lineLabel = "bs $batchSize" +
+                        " croMutRat $crossoverMutateRatio" +
                         "str $strategy" +
-                        " mpr $startMutateProp," +
-                        " cr $crossoverRate " +
-                        " cp $crossoverProp" +
-                        " mf $mutateFreq" +
-                        " mpd $mutatePropDecay" +
+                        " cr $crossoverPower " +
                         " ps $poolsize" +
                         " mpo $startMutatePower"
         )
