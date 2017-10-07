@@ -42,7 +42,7 @@ class Net {
             batchXs.add(xs[r])
             batchYs.add(ys[r])
         }
-        return Pair(xs, ys)
+        return Pair(batchXs, batchYs)
     }
 
     private fun computeFitnessBasedOnLoss(trainingXs: List<DoubleArray>,
@@ -80,7 +80,7 @@ class Net {
     fun calculateSexualFitness(mate: Net, xs: List<DoubleArray>, ys: List<Int>, batchSize: Int, inheritanceDecay: Double) {
         val (batchXs, batchYs) = createBatch(xs, ys, batchSize)
 
-        val batchLoss = (0 until xs.size).sumByDouble { svmLoss(batchXs[it], batchYs[it]) } / batchXs.size
+        val batchLoss = (0 until batchXs.size).sumByDouble { svmLoss(batchXs[it], batchYs[it]) } / batchXs.size
         val ratio = 1.0 / (xs.size - batchXs.size + 1)
         val batchFitness = ratio / batchLoss
 
@@ -91,7 +91,7 @@ class Net {
     fun calculateAsexualFitness(xs: List<DoubleArray>, ys: List<Int>, batchSize: Int, inheritanceDecay: Double) {
         val (batchXs, batchYs) = createBatch(xs, ys, batchSize)
 
-        val batchLoss = (0 until xs.size).sumByDouble { svmLoss(batchXs[it], batchYs[it]) } / batchXs.size
+        val batchLoss = (0 until batchXs.size).sumByDouble { svmLoss(batchXs[it], batchYs[it]) } / batchXs.size
         val ratio = 1.0 / (xs.size - batchXs.size + 1)
         val batchFitness = ratio / batchLoss
 
