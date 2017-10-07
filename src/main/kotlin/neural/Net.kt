@@ -29,24 +29,25 @@ class Net {
         return layerOutput
     }
 
-    fun computeFitness(trainingXs: List<DoubleArray>, trainingYs: List<Int>, parentInheritance: Double, gamma: Double, batchSize: Int) {
-        var xs = trainingXs
-        var ys = trainingYs
-        val clippedBatchsize = Math.min(batchSize, xs.size)
+    private fun createBatch(xs: List<DoubleArray>, ys: List<Int>, batchSize: Int): Pair<List<DoubleArray>, List<Int>> {
+        val clippedBatchSize = if (batchSize <= 0)
+            xs.size
+        else
+            Math.min(batchSize, xs.size)
 
-        if (clippedBatchsize != -1) {
-            val batchXs = mutableListOf<DoubleArray>()
-            val batchYs = mutableListOf<Int>()
-            while (batchXs.size < clippedBatchsize) {
-                // Todo diversity in batch
-                val r = ThreadLocalRandom.current().nextInt(xs.size)
-                batchXs.add(xs[r])
-                batchYs.add(ys[r])
-            }
-            xs = batchXs
-            ys = batchYs
+        val batchXs = mutableListOf<DoubleArray>()
+        val batchYs = mutableListOf<Int>()
+        while (batchXs.size < clippedBatchSize) {
+            // Todo diversity in batch
+            val r = ThreadLocalRandom.current().nextInt(xs.size)
+            batchXs.add(xs[r])
+            batchYs.add(ys[r])
         }
+        return Pair(xs, ys)
+    }
 
+    fun computeFitness(trainingXs: List<DoubleArray>, trainingYs: List<Int>, parentInheritance: Double, gamma: Double, batchSize: Int) {
+        val (xs, ys) = createBatch(trainingXs, trainingYs, batchSize)
         val dataLoss = (0 until xs.size).sumByDouble { svmLoss(xs[it], ys[it]) } / xs.size
 
         /*// Todo move to crossoverAndMutate?

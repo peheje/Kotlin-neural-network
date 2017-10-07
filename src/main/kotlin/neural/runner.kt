@@ -20,7 +20,7 @@ fun neuralNetworkRunner() {
     val batchSize = 4
     val regularizationStrength = 0.001
 
-    val dataset = WineDataset()
+    val dataset = IrisDataset()
     val layerSetup = arrayListOf(dataset.numInputs, 8, 4, 4, dataset.numOutputs)
 
     //val mutatePowers = linspace(0.40, 0.40, 1).toList()
@@ -45,7 +45,7 @@ fun neuralNetworkRunner() {
                 batchSize = batchSize,
                 plot = true,
                 color = color,
-                timeInSeconds = 30,
+                timeInSeconds = 10,
                 strategy = strategy,
                 layerSetup = layerSetup,
                 dataset = dataset
