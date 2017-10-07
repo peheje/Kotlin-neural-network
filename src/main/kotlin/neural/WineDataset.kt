@@ -29,7 +29,7 @@ class WineDataset : Dataset() {
         shuffle(xs, ys)
 
         val total = xs.size
-        val testSize = 20
+        val testSize = 10
 
         val trainingXs = xs.take(total-testSize)
         val trainingYs = ys.take(total-testSize)

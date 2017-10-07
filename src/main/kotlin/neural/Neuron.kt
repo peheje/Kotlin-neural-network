@@ -38,11 +38,11 @@ class Neuron {
             bias += random(-mutatePower, mutatePower)
     }
 
-    fun crossover(net: List<Net>, layerIdx: Int, neuronIdx: Int, crossoverRate: Double) {
-        val mate: Neuron = Net.pick(net).layers[layerIdx].neurons[neuronIdx]
+    fun crossover(mate: Net, layerIdx: Int, neuronIdx: Int, crossoverRate: Double) {
+        val mateNeuron: Neuron = mate.layers[layerIdx].neurons[neuronIdx]
         for (i in 0 until weights.size)
-            weights[i] = lerp(weights[i], mate.weights[i], random(0.0, crossoverRate))
-        bias = lerp(bias, mate.bias, random(0.0, crossoverRate))
+            weights[i] = lerp(weights[i], mateNeuron.weights[i], random(0.0, crossoverRate))
+        bias = lerp(bias, mateNeuron.bias, random(0.0, crossoverRate))
     }
 
     private fun lerp(a: Double, b: Double, p: Double): Double {

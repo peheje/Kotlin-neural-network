@@ -31,6 +31,7 @@ class Net {
 
     fun computeFitness(xs: List<DoubleArray>, ys: List<Int>, parentInheritance: Double, gamma: Double) {
         // Todo move to crossoverAndMutate?
+
         var regularizationLoss = 0.0
         if (gamma != 0.0) {
             for (layer in layers)
@@ -41,9 +42,13 @@ class Net {
 
         regularizationLoss *= gamma
 
-        val batchFitness = Math.max(0.0, (nCorrectPredictions(xs, ys) / xs.size) - regularizationLoss)
+        val dataLoss = (0 until xs.size).sumByDouble { softmaxLoss(xs[it], ys[it]) } / xs.size
+        val correctFitness = (nCorrectPredictions(xs, ys) / xs.size)
+
+        var batchfitness = correctFitness - regularizationLoss - dataLoss
+        batchfitness = Math.max(0.0, batchfitness)
         val parentFitness = fitness
-        fitness = parentFitness * parentInheritance + batchFitness
+        fitness = parentFitness * parentInheritance + batchfitness
     }
 
     override fun toString(): String {
@@ -57,9 +62,10 @@ class Net {
     }
 
     fun crossover(pool: List<Net>, crossoverRate: Double) {
+        val mate = pick(pool)
         for ((layerIdx, layer) in layers.withIndex()) {
             for ((neuronIdx, neuron) in layer.neurons.withIndex()) {
-                neuron.crossover(pool, layerIdx, neuronIdx, crossoverRate)
+                neuron.crossover(mate, layerIdx, neuronIdx, crossoverRate)
             }
         }
     }
@@ -89,9 +95,10 @@ class Net {
         }
 
         fun crossoverAndMutate(net: Net, pool: List<Net>, crossoverProp: Double, crossoverRate: Double, mutateProp: Double, mutateFreq: Double, mutatePower: Double) {
+            val mate = pick(pool)
             for ((layerIdx, layer) in net.layers.withIndex()) {
                 for ((neuronIdx, neuron) in layer.neurons.withIndex()) {
-                    if (random() < crossoverProp) neuron.crossover(pool, layerIdx, neuronIdx, crossoverRate)
+                    if (random() < crossoverProp) neuron.crossover(mate, layerIdx, neuronIdx, crossoverRate)
                     if (random() < mutateProp) neuron.mutate(mutatePower, mutateFreq)
                 }
             }
@@ -142,7 +149,6 @@ class Net {
     }
 
     private fun softmaxLoss(xs: DoubleArray, correctIndex: Int): Double {
-        throw Exception("please triple check implementation")
         val netOutput = this(xs)
         val sm = softmax(netOutput)[correctIndex]
         return -Math.log(sm)

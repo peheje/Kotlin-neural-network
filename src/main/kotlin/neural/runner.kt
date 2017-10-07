@@ -11,14 +11,14 @@ import java.util.stream.Stream
 fun neuralNetworkRunner() {
     val mutateProp = 0.35
     val mutateFreq = 0.25
-    val mutatePower = 2.0
+    val mutatePower = 1.0
     val mutatePowerDecay = 0.999
 
     val crossoverProp = 0.05
     val crossoverRate = 0.4
 
     val poolsize = 10_000L
-    val parentInheritance = 0.0
+    val parentInheritance = 0.1
     val batchSize = 2
     val regularizationStrength = 0.0
 
