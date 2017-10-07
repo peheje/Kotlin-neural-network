@@ -1,7 +1,6 @@
 package neural
 
 import koma.*
-import org.nd4j.linalg.api.ops.impl.transforms.Xor
 import random
 import java.time.Duration
 import java.time.Instant
@@ -85,25 +84,16 @@ private fun geneticNeural(poolsize: Long,
     var pool = Stream.generate { Net(trainingXs, trainingYs, layerSetup, parentInheritance, gamma) }.parallel().limit(poolsize).collect(toList())
     while (Duration.between(starts, Instant.now()).seconds < timeInSeconds) {
         Net.computeWheel(pool)
-        when (strategy) {
-            0 -> {
-                val nextGen = Stream.generate { Net.pick(pool) }.parallel().limit(poolsize).map {
-                    if (random() < crossoverProp) it.crossover(pool, crossoverRate)
-                    if (random() < mutateProp) it.mutate(mutateFreq, mutatePower)
-                    it.computeFitness(trainingXs, trainingYs, parentInheritance, gamma, batchSize)
-                    it
-                }.collect(toList())
-                pool = nextGen
-            }
-            1 -> {
-                val nextGen = Stream.generate { Net.pick(pool) }.parallel().limit(poolsize).map {
-                    Net.crossoverAndMutate(it, pool, crossoverProp, crossoverRate, mutateProp, mutateFreq, mutatePower)
-                    it.computeFitness(trainingXs, trainingYs, parentInheritance, gamma, batchSize)
-                    it
-                }.collect(toList())
-                pool = nextGen
-            }
-        }
+        val (bxs, bys) = Net.createBatch(trainingXs, trainingYs, batchSize)
+
+        val nextGen = Stream.generate { Net.pick(pool) }.parallel().limit(poolsize).map {
+            if (random() < crossoverProp) it.crossover(pool, crossoverRate)
+            if (random() < mutateProp) it.mutate(mutateFreq, mutatePower)
+            it.computeFitness(bxs, bys, parentInheritance, gamma)
+            it
+        }.collect(toList())
+        pool = nextGen
+
         if (mutatePower > 0.10)
             mutatePower *= mutatePowerDecay
         if (mutateProp > 0.05)

@@ -11,7 +11,7 @@ class Net {
     constructor(trainingXs: List<DoubleArray>, trainingYs: List<Int>, layerSetup: List<Int>, parentInheritance: Double, gamma: Double) {
         val lastLayerIdx = layerSetup.size - 2  // -2 as last is output size
         layers = (0 until layerSetup.size - 1).map { Layer(layerSetup[it], layerSetup[it + 1], it == lastLayerIdx) }
-        computeFitness(trainingXs, trainingYs, parentInheritance, gamma, batchSize = -1)
+        computeFitness(trainingXs, trainingYs, parentInheritance, gamma)
     }
 
     private constructor(layers: List<Layer>, fitness: Double) {
@@ -29,25 +29,7 @@ class Net {
         return layerOutput
     }
 
-    private fun createBatch(xs: List<DoubleArray>, ys: List<Int>, batchSize: Int): Pair<List<DoubleArray>, List<Int>> {
-        val clippedBatchSize = if (batchSize <= 0)
-            xs.size
-        else
-            Math.min(batchSize, xs.size)
-
-        val batchXs = mutableListOf<DoubleArray>()
-        val batchYs = mutableListOf<Int>()
-        while (batchXs.size < clippedBatchSize) {
-            // Todo diversity in batch
-            val r = ThreadLocalRandom.current().nextInt(xs.size)
-            batchXs.add(xs[r])
-            batchYs.add(ys[r])
-        }
-        return Pair(xs, ys)
-    }
-
-    fun computeFitness(trainingXs: List<DoubleArray>, trainingYs: List<Int>, parentInheritance: Double, gamma: Double, batchSize: Int) {
-        val (xs, ys) = createBatch(trainingXs, trainingYs, batchSize)
+    fun computeFitness(xs: List<DoubleArray>, ys: List<Int>, parentInheritance: Double, gamma: Double) {
         val dataLoss = (0 until xs.size).sumByDouble { svmLoss(xs[it], ys[it]) } / xs.size
 
         /*// Todo move to crossoverAndMutate?
@@ -113,6 +95,23 @@ class Net {
                     if (random() < mutateProp) neuron.mutate(mutatePower, mutateFreq)
                 }
             }
+        }
+
+        fun createBatch(xs: List<DoubleArray>,
+                        ys: List<Int>,
+                        batchSize: Int): Pair<List<DoubleArray>, List<Int>> {
+
+            val clippedBatchSize = Math.min(batchSize, xs.size)
+
+            val batchXs = mutableListOf<DoubleArray>()
+            val batchYs = mutableListOf<Int>()
+            while (batchXs.size < clippedBatchSize) {
+                // Todo diversity in batch
+                val r = ThreadLocalRandom.current().nextInt(xs.size)
+                batchXs.add(xs[r])
+                batchYs.add(ys[r])
+            }
+            return Pair(batchXs, batchYs)
         }
     }
 
