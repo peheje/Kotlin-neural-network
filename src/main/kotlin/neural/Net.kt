@@ -52,14 +52,17 @@ class Net {
         // Todo move to crossoverAndMutate?
 
         var regularizationLoss = 0.0
+        var weights = 0
         if (gamma != 0.0) {
             for (layer in layers)
                 for (neuron in layer.neurons)
-                    for (weight in neuron.weights)
+                    for (weight in neuron.weights) {
+                        weights++
                         regularizationLoss += weight * weight
+                    }
         }
 
-        regularizationLoss *= gamma
+        regularizationLoss = (regularizationLoss / weights.toDouble()) * gamma
 
         val dataLoss = (0 until xs.size).sumByDouble { softmaxLoss(xs[it], ys[it]) } / (xs.size + 0.0001)
         val correctFitness = nCorrectPredictions(xs, ys) / (xs.size + 0.0001)
