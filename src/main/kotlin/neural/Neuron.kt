@@ -41,12 +41,8 @@ class Neuron {
     fun crossover(mate: Net, layerIdx: Int, neuronIdx: Int, crossoverRate: Double) {
         val mateNeuron: Neuron = mate.layers[layerIdx].neurons[neuronIdx]
         for (i in 0 until weights.size)
-            weights[i] = lerp(weights[i], mateNeuron.weights[i], random(0.0, crossoverRate))
-        bias = lerp(bias, mateNeuron.bias, random(0.0, crossoverRate))
-    }
-
-    private fun lerp(a: Double, b: Double, p: Double): Double {
-        return a + (b - a) * p
+            weights[i] = Net.lerp(weights[i], mateNeuron.weights[i], random(0.0, crossoverRate))
+        bias = Net.lerp(bias, mateNeuron.bias, random(0.0, crossoverRate))
     }
 
     override fun toString(): String {

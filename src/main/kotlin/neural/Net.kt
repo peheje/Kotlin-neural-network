@@ -8,14 +8,34 @@ class Net {
     var fitness: Double = 0.0
 
     constructor(trainingXs: List<DoubleArray>, trainingYs: List<Int>, layerSetup: List<Int>, parentInheritance: Double, gamma: Double) {
+
+        val nInput = layerSetup.first()
+        val nOutput = layerSetup.last()
+        var layerSetup = mutableListOf(nInput)
+        val nLayers = ThreadLocalRandom.current().nextInt(1,4)
+        for (i in 0 until nLayers) {
+            layerSetup.add(ThreadLocalRandom.current().nextInt(1,8))
+        }
+        layerSetup.add(nOutput)
+
+
         val lastLayerIdx = layerSetup.size - 2  // -2 as last is output size
         layers = (0 until layerSetup.size - 1).map { Layer(layerSetup[it], layerSetup[it + 1], it == lastLayerIdx) }.toMutableList()
         computeFitness(trainingXs, trainingYs, parentInheritance, gamma)
+        fitness += ThreadLocalRandom.current().nextDouble(0.0, 1.0)
     }
 
     private constructor(layers: MutableList<Layer>, fitness: Double) {
         this.layers = layers
         this.fitness = fitness
+    }
+
+    fun architecture(): String {
+        val nInput = layers.first().neurons.first().weights.size
+        // val nOutput = layers.last().neurons.size
+        var arch: MutableList<Int> = layers.map { it.neurons.size }.toMutableList()
+        arch.add(0, nInput)
+        return arch.toString()
     }
 
     private fun copy(): Net {
@@ -60,6 +80,27 @@ class Net {
         return sb.toString()
     }
 
+    fun crossover(pool: List<Net>, crossoverRate: Double) {
+        val mate = pick(pool)
+
+        while (random() < crossoverRate) {
+            // Take random weight from random neuron from random layer from mate
+            val mateRanLayer = ThreadLocalRandom.current().nextInt(0, mate.layers.size)
+            val mateRanNeuron = ThreadLocalRandom.current().nextInt(0, mate.layers[mateRanLayer].neurons.size)
+            val mateRanWeight = ThreadLocalRandom.current().nextInt(0, mate.layers[mateRanLayer].neurons[mateRanNeuron].weights.size)
+
+            // Take random weight from random neuron from random layer from me
+            val ranLayer = ThreadLocalRandom.current().nextInt(0, layers.size)
+            val ranNeuron = ThreadLocalRandom.current().nextInt(0, layers[ranLayer].neurons.size)
+            val ranWeight = ThreadLocalRandom.current().nextInt(0, layers[ranLayer].neurons[ranNeuron].weights.size)
+
+            // Lerp them
+            val crossoverPower = ThreadLocalRandom.current().nextDouble(1.0)
+            layers[ranLayer].neurons[ranNeuron].weights[ranWeight] = lerp(layers[ranLayer].neurons[ranNeuron].weights[ranWeight],
+                    mate.layers[mateRanLayer].neurons[mateRanNeuron].weights[mateRanWeight], crossoverPower)
+        }
+    }
+
     fun crossover2(pool: List<Net>, crossoverRate: Double) {
         val mate = pick(pool)
         for ((layerIdx, layer) in layers.withIndex()) {
@@ -69,7 +110,7 @@ class Net {
         }
     }
 
-    fun crossover(pool: List<Net>, crossoverRate: Double) {
+    fun crossover3(pool: List<Net>, crossoverRate: Double) {
         val mate = pick(pool)
         for (i in 0 until layers.size)
             if (random() < crossoverRate) {
@@ -90,17 +131,21 @@ class Net {
     companion object {
         private var wheel = DoubleArray(0)
 
+        internal fun lerp(a: Double, b: Double, p: Double): Double {
+            return a + (b - a) * p
+        }
+
         fun computeWheel(pool: List<Net>) {
             var sum = 0.0
             wheel = DoubleArray(pool.size) { i -> sum += pool[i].fitness; sum }
         }
 
-        fun pick(arr: List<Net>): Net {
+        fun pick(pool: List<Net>): Net {
             val sum = wheel.last()
             val r = random() * sum
             var idx = wheel.binarySearch(r)
             if (idx < 0) idx = -idx - 1
-            return arr[idx].copy()
+            return pool[idx].copy()
         }
 
         fun crossoverAndMutate(net: Net, pool: List<Net>, crossoverProp: Double, crossoverRate: Double, mutateProp: Double, mutateFreq: Double, mutatePower: Double) {
