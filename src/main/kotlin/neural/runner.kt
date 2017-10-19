@@ -17,8 +17,6 @@ fun neuralNetworkRunner() {
     val crossoverProp = 0.4
     val crossoverRate = 0.2
 
-    val eliteClones = 1
-
     val poolsize = 5_000L
     val batchSize = 8
     val parentInheritance = 0.1
@@ -52,8 +50,7 @@ fun neuralNetworkRunner() {
                 timeInSeconds = 10,
                 strategy = strategy,
                 layerSetup = layerSetup,
-                dataset = dataset,
-                eliteClones = eliteClones
+                dataset = dataset
         )
     }
 }
@@ -75,8 +72,7 @@ private fun geneticNeural(poolsize: Long,
                           timeInSeconds: Int,
                           strategy: Int,
                           layerSetup: List<Int>,
-                          dataset: Dataset,
-                          eliteClones: Int) {
+                          dataset: Dataset) {
 
     val x = mutableListOf<Double>()
     val y = mutableListOf<Double>()
@@ -92,12 +88,13 @@ private fun geneticNeural(poolsize: Long,
     while (Duration.between(starts, Instant.now()).seconds < timeInSeconds) {
         Net.computeWheel(pool)
         val (bxs, bys) = Net.createBatch(trainingXs, trainingYs, batchSize)
-        val nextGen = Stream.generate { Net.pick(pool) }.parallel().limit(poolsize).map {
+        val nextGen = Stream.generate { Net.pick(pool) }.parallel().limit(poolsize-1).map {
             if (random() < crossoverProp) it.crossover(pool, crossoverRate)
             if (random() < mutateProp) it.mutate(mutateFreq, mutatePower)
             it.computeFitness(bxs, bys, parentInheritance, gamma)
             it
         }.collect(toList())
+
         pool = nextGen
 
         if (mutatePower > 0.10)
