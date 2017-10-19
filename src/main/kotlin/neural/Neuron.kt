@@ -2,11 +2,22 @@ package neural
 
 import random
 
+class Connection {
+    private var leftNeuron: Neuron
+    private var weight: Double
+
+    constructor(neuron: Neuron) {
+        this.leftNeuron = neuron
+        this.weight = random(-1.0, 1.0)
+    }
+}
+
 class Neuron {
-    var weights: DoubleArray
+    var connections: List<Connection>
     private var bias: Double
 
     constructor(numWeights: Int) {
+
         this.weights = DoubleArray(numWeights) { random(-1.0, 1.0) }
         this.bias = random(-1.0, 1.0)
     }
