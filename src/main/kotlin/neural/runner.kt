@@ -17,8 +17,8 @@ fun neuralNetworkRunner() {
     val crossoverProp = 0.4
     val crossoverRate = 0.2
 
-    val poolsize = 5_000L
-    val batchSize = 8
+    val poolsize = 4_000L
+    val batchSize = 2
     val parentInheritance = 0.1
     val regularizationStrength = 0.02
 

@@ -5,6 +5,7 @@ import java.util.concurrent.ThreadLocalRandom
 
 class Net {
     val layers: MutableList<Layer>
+    private val nWeights: Int
     var fitness: Double = 0.0
 
     constructor(trainingXs: List<DoubleArray>, trainingYs: List<Int>, layerSetup: List<Int>, parentInheritance: Double, gamma: Double) {
@@ -18,16 +19,17 @@ class Net {
         }
         layerSetup.add(nOutput)
 
-
+        nWeights = (0 until layerSetup.size-1).sumBy { (1+layerSetup[it]) * layerSetup[it+1] }
         val lastLayerIdx = layerSetup.size - 2  // -2 as last is output size
         layers = (0 until layerSetup.size - 1).map { Layer(layerSetup[it], layerSetup[it + 1], it == lastLayerIdx) }.toMutableList()
         computeFitness(trainingXs, trainingYs, parentInheritance, gamma)
         fitness += ThreadLocalRandom.current().nextDouble(0.0, 1.0)
     }
 
-    private constructor(layers: MutableList<Layer>, fitness: Double) {
+    private constructor(layers: MutableList<Layer>, fitness: Double, nWeights: Int) {
         this.layers = layers
         this.fitness = fitness
+        this.nWeights = nWeights
     }
 
     fun architecture(): String {
@@ -39,7 +41,7 @@ class Net {
     }
 
     private fun copy(): Net {
-        return Net(MutableList(layers.size) { i -> layers[i].copy() }, fitness)
+        return Net(MutableList(layers.size) { i -> layers[i].copy() }, fitness, nWeights)
     }
 
     operator fun invoke(inputs: DoubleArray): DoubleArray {
@@ -52,17 +54,13 @@ class Net {
         // Todo move to crossoverAndMutate?
 
         var regularizationLoss = 0.0
-        var weights = 0
         if (gamma != 0.0) {
-            for (layer in layers)
-                for (neuron in layer.neurons)
-                    for (weight in neuron.weights) {
-                        weights++
-                        regularizationLoss += weight * weight
-                    }
+            for (layer in layers) for (neuron in layer.neurons) for (weight in neuron.weights) {
+                regularizationLoss += weight * weight
+            }
         }
 
-        regularizationLoss = (regularizationLoss / weights.toDouble()) * gamma
+        regularizationLoss = (regularizationLoss / nWeights.toDouble()) * gamma
 
         val dataLoss = (0 until xs.size).sumByDouble { softmaxLoss(xs[it], ys[it]) } / (xs.size + 0.0001)
         val correctFitness = nCorrectPredictions(xs, ys) / (xs.size + 0.0001)
