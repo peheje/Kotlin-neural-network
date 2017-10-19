@@ -13,13 +13,13 @@ class Net {
         val nInput = layerSetup.first()
         val nOutput = layerSetup.last()
         var layerSetup = mutableListOf(nInput)
-        val nLayers = ThreadLocalRandom.current().nextInt(1,4)
+        val nLayers = ThreadLocalRandom.current().nextInt(1, 3)
         for (i in 0 until nLayers) {
-            layerSetup.add(ThreadLocalRandom.current().nextInt(1,8))
+            layerSetup.add(ThreadLocalRandom.current().nextInt(1, 8))
         }
         layerSetup.add(nOutput)
 
-        nWeights = (0 until layerSetup.size-1).sumBy { (1+layerSetup[it]) * layerSetup[it+1] }
+        nWeights = (0 until layerSetup.size - 1).sumBy { (1 + layerSetup[it]) * layerSetup[it + 1] }
         val lastLayerIdx = layerSetup.size - 2  // -2 as last is output size
         layers = (0 until layerSetup.size - 1).map { Layer(layerSetup[it], layerSetup[it + 1], it == lastLayerIdx) }.toMutableList()
         computeFitness(trainingXs, trainingYs, parentInheritance, gamma)
@@ -159,19 +159,22 @@ class Net {
             }
         }
 
-        fun createBatch(xs: List<DoubleArray>,
-                        ys: List<Int>,
-                        batchSize: Int): Pair<List<DoubleArray>, List<Int>> {
+        fun createBatch(dataset: Dataset, batchSize: Int): Pair<List<DoubleArray>, List<Int>> {
 
+            // Todo Dataset
+            val (xs, _) = dataset.getData()
             val clippedBatchSize = Math.min(batchSize, xs.size)
 
             val batchXs = mutableListOf<DoubleArray>()
             val batchYs = mutableListOf<Int>()
+
+            // Diverse batch as possible
+            var c = 0
             while (batchXs.size < clippedBatchSize) {
-                // Todo diversity in batch
-                val r = ThreadLocalRandom.current().nextInt(xs.size)
-                batchXs.add(xs[r])
-                batchYs.add(ys[r])
+                val r = ThreadLocalRandom.current().nextInt(dataset.xsSplit[c].size)
+                batchXs.add(dataset.xsSplit[c][r])
+                batchYs.add(dataset.ysSplit[c][r])
+                c = (c + 1) % dataset.numOutputs
             }
             return Pair(batchXs, batchYs)
         }

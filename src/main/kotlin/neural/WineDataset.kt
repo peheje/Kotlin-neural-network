@@ -2,8 +2,6 @@ package neural
 
 import org.simpleflatmapper.csv.CsvParser
 import java.io.FileReader
-import java.util.*
-import java.util.concurrent.ThreadLocalRandom
 
 class WineDataset : Dataset() {
     override val numInputs: Int
@@ -27,6 +25,7 @@ class WineDataset : Dataset() {
         bootstrap(xs, ys)
         zeroNormalize(xs)
         shuffle(xs, ys)
+        split(xs, ys)
 
         val total = xs.size
         val testSize = 10

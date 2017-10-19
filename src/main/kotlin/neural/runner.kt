@@ -17,9 +17,9 @@ fun neuralNetworkRunner() {
     val crossoverProp = 0.4
     val crossoverRate = 0.2
 
-    val poolsize = 4_000L
-    val batchSize = 2
-    val parentInheritance = 0.1
+    val poolsize = 10_000L
+    val batchSize = 4
+    val parentInheritance = 0.6
     val regularizationStrength = 0.02
 
     val dataset = WineDataset()
@@ -87,7 +87,7 @@ private fun geneticNeural(poolsize: Long,
     var pool = Stream.generate { Net(trainingXs, trainingYs, layerSetup, parentInheritance, gamma) }.parallel().limit(poolsize).collect(toList())
     while (Duration.between(starts, Instant.now()).seconds < timeInSeconds) {
         Net.computeWheel(pool)
-        val (bxs, bys) = Net.createBatch(trainingXs, trainingYs, batchSize)
+        val (bxs, bys) = Net.createBatch(dataset, batchSize)
         val nextGen = Stream.generate { Net.pick(pool) }.parallel().limit(poolsize-1).map {
             if (random() < crossoverProp) it.crossover(pool, crossoverRate)
             if (random() < mutateProp) it.mutate(mutateFreq, mutatePower)

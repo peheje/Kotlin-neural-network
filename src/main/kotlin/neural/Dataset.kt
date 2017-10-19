@@ -9,10 +9,32 @@ data class Data(val trainingXs: List<DoubleArray>,
 
 abstract class Dataset {
     abstract fun getData(): Data
+
+    lateinit var xsSplit: MutableList<List<DoubleArray>>
+    lateinit var ysSplit: MutableList<List<Int>>
+
     lateinit var testXs: List<DoubleArray>
     lateinit var testYs: List<Int>
     abstract val numInputs: Int
     abstract val numOutputs: Int
+
+    fun split(xs: MutableList<DoubleArray>, ys: MutableList<Int>) {
+        xsSplit = mutableListOf()
+        ysSplit = mutableListOf()
+
+        val classes = ys.distinct()
+        for (c in classes) {
+            val ids = ys.indices.filter { ys[it] == c }
+            val xc = mutableListOf<DoubleArray>()
+            val yc = mutableListOf<Int>()
+            for (id in ids) {
+                xc.add(xs[id])
+                yc.add(ys[id])
+            }
+            xsSplit.add(xc)
+            ysSplit.add(yc)
+        }
+    }
 
     fun testAccuracy(best: Net): Double {
         var nCorrect = 0
