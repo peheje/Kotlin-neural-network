@@ -162,8 +162,8 @@ class Net {
         fun createBatch(dataset: Dataset, batchSize: Int): Pair<List<DoubleArray>, List<Int>> {
 
             // Todo Dataset
-            val (xs, _) = dataset.getData()
-            val clippedBatchSize = Math.min(batchSize, xs.size)
+            val trainingSize = dataset.nTraining
+            val clippedBatchSize = Math.min(batchSize, trainingSize)
 
             val batchXs = mutableListOf<DoubleArray>()
             val batchYs = mutableListOf<Int>()
@@ -171,9 +171,9 @@ class Net {
             // Diverse batch as possible
             var c = 0
             while (batchXs.size < clippedBatchSize) {
-                val r = ThreadLocalRandom.current().nextInt(dataset.xsSplit[c].size)
-                batchXs.add(dataset.xsSplit[c][r])
-                batchYs.add(dataset.ysSplit[c][r])
+                val r = ThreadLocalRandom.current().nextInt(dataset.xsTrainSplit[c].size)
+                batchXs.add(dataset.xsTrainSplit[c][r])
+                batchYs.add(dataset.ysTrainSplit[c][r])
                 c = (c + 1) % dataset.numOutputs
             }
             return Pair(batchXs, batchYs)

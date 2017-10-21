@@ -22,7 +22,7 @@ fun neuralNetworkRunner() {
     val parentInheritance = 0.6
     val regularizationStrength = 0.02
 
-    val dataset = WineDataset()
+    val dataset = IrisDataset()
     val layerSetup = arrayListOf(dataset.numInputs, 8, 4, 4, dataset.numOutputs)
 
     //val mutatePowers = linspace(0.40, 0.40, 1).toList()
@@ -80,7 +80,8 @@ private fun geneticNeural(poolsize: Long,
     var mutateProp = startMutateProp
     var mutatePower = startMutatePower
 
-    val (trainingXs, trainingYs) = dataset.getData()
+    val trainingXs = dataset.xsTrainSplit.flatMap { it }
+    val trainingYs = dataset.ysTrainSplit.flatMap { it }
 
     // Algorithm go
     val starts = Instant.now()

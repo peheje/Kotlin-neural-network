@@ -3,24 +3,18 @@ package neural
 import java.util.*
 import java.util.concurrent.ThreadLocalRandom
 
-data class Data(val trainingXs: List<DoubleArray>,
-                val trainingYs: List<Int>)
+interface Dataset {
+    var xsTrainSplit: MutableList<List<DoubleArray>>
+    var ysTrainSplit: MutableList<List<Int>>
+    var xsTest: List<DoubleArray>
+    var ysTest: List<Int>
+    var nTraining: Int
+    var numInputs: Int
+    var numOutputs: Int
 
-
-abstract class Dataset {
-    abstract fun getData(): Data
-
-    lateinit var xsSplit: MutableList<List<DoubleArray>>
-    lateinit var ysSplit: MutableList<List<Int>>
-
-    lateinit var testXs: List<DoubleArray>
-    lateinit var testYs: List<Int>
-    abstract val numInputs: Int
-    abstract val numOutputs: Int
-
-    fun split(xs: MutableList<DoubleArray>, ys: MutableList<Int>) {
-        xsSplit = mutableListOf()
-        ysSplit = mutableListOf()
+    fun splitTraining(xs: List<DoubleArray>, ys: List<Int>) {
+        xsTrainSplit = mutableListOf()
+        ysTrainSplit = mutableListOf()
 
         val classes = ys.distinct()
         for (c in classes) {
@@ -31,22 +25,22 @@ abstract class Dataset {
                 xc.add(xs[id])
                 yc.add(ys[id])
             }
-            xsSplit.add(xc)
-            ysSplit.add(yc)
+            xsTrainSplit.add(xc)
+            ysTrainSplit.add(yc)
         }
     }
 
     fun testAccuracy(best: Net): Double {
         var nCorrect = 0
-        for ((i, testX) in testXs.withIndex()) {
-            val correct = testYs[i]
+        for ((i, testX) in xsTest.withIndex()) {
+            val correct = ysTest[i]
             val neuralGuesses: DoubleArray = best(testX)
             val bestGuess = neuralGuesses.indexOf(neuralGuesses.max()!!)
             println("Net guess $bestGuess correct $correct")
             if (bestGuess == correct) nCorrect++
         }
-        val accuracy = nCorrect.toDouble() / testXs.size
-        println("Correct test-set classifications $nCorrect / ${testXs.size}")
+        val accuracy = nCorrect.toDouble() / xsTest.size
+        println("Correct test-set classifications $nCorrect / ${xsTest.size}")
         return accuracy
     }
 
@@ -67,6 +61,20 @@ abstract class Dataset {
     }
 
     fun bootstrap(xs: MutableList<DoubleArray>, ys: MutableList<Int>) {
+        fun addOneBootstrapped(classIdx: Int, ys: MutableList<Int>, xs: MutableList<DoubleArray>) {
+            val ids = ys.indices.filter { ys[it] == classIdx }
+            // Get a feature from xs[ids]
+            val newExample = DoubleArray(numInputs) { 0.0 }
+            for (i in 0 until numInputs) {
+                val r = ThreadLocalRandom.current().nextInt(ids.size)
+                val id: Int = ids[r]
+                val feature = xs[id][i]
+                newExample[i] = feature
+            }
+            ys.add(classIdx)
+            xs.add(newExample)
+        }
+
         val sizes = (0 until numOutputs).map { i -> ys.filter { it == i }.size }
         val max = sizes.max()!!
 
@@ -75,19 +83,5 @@ abstract class Dataset {
                 addOneBootstrapped(i, ys, xs)
             }
         }
-    }
-
-    private fun addOneBootstrapped(classIdx: Int, ys: MutableList<Int>, xs: MutableList<DoubleArray>) {
-        val ids = ys.indices.filter { ys[it] == classIdx }
-        // Get a feature from xs[ids]
-        val newExample = DoubleArray(numInputs) { 0.0 }
-        for (i in 0 until numInputs) {
-            val r = ThreadLocalRandom.current().nextInt(ids.size)
-            val id: Int = ids[r]
-            val feature = xs[id][i]
-            newExample[i] = feature
-        }
-        ys.add(classIdx)
-        xs.add(newExample)
     }
 }

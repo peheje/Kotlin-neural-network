@@ -2,15 +2,17 @@ package neural
 
 import org.simpleflatmapper.csv.CsvParser
 import java.io.FileReader
-import java.util.*
 
-class IrisDataset : Dataset() {
-    override val numInputs: Int
-        get() = 4
-    override val numOutputs: Int
-        get() = 3
+class IrisDataset : Dataset {
+    override lateinit var xsTrainSplit: MutableList<List<DoubleArray>>
+    override lateinit var ysTrainSplit: MutableList<List<Int>>
+    override lateinit var xsTest: List<DoubleArray>
+    override lateinit var ysTest: List<Int>
+    override var nTraining: Int = -1
+    override var numInputs: Int = 4
+    override var numOutputs: Int = 3
 
-    override fun getData(): Data {
+    init {
         // Read iris data
         val nameMap = mapOf(
                 "Iris-virginica" to 0,
@@ -28,15 +30,15 @@ class IrisDataset : Dataset() {
         }
 
         // Create training set and test set
-
         shuffle(xs, ys)
 
-        val trainingXs = xs.take(130)
-        val trainingYs = ys.take(130)
+        nTraining = 130
+        val trainingXs = xs.take(nTraining)
+        val trainingYs = ys.take(nTraining)
 
-        testXs = xs.takeLast(20)
-        testYs = ys.takeLast(20)
+        xsTest = xs.takeLast(20)
+        ysTest = ys.takeLast(20)
 
-        return Data(trainingXs, trainingYs)
+        splitTraining(trainingXs.toMutableList(), trainingYs.toMutableList())
     }
 }
