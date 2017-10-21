@@ -8,16 +8,18 @@ class Net {
     private val nWeights: Int
     var fitness: Double = 0.0
 
-    constructor(trainingXs: List<DoubleArray>, trainingYs: List<Int>, layerSetup: List<Int>, parentInheritance: Double, gamma: Double) {
+    constructor(trainingXs: List<DoubleArray>, trainingYs: List<Int>, layerSetup: List<Int>, parentInheritance: Double, gamma: Double, randomArchitecture: Boolean = false) {
 
-        val nInput = layerSetup.first()
-        val nOutput = layerSetup.last()
-        var layerSetup = mutableListOf(nInput)
-        val nLayers = ThreadLocalRandom.current().nextInt(1, 3)
-        for (i in 0 until nLayers) {
-            layerSetup.add(ThreadLocalRandom.current().nextInt(1, 8))
+        var layerSetup = layerSetup.toMutableList()
+        if (randomArchitecture) {
+            val nInput = layerSetup.first()
+            val nOutput = layerSetup.last()
+            val nLayers = ThreadLocalRandom.current().nextInt(1, 3)
+            for (i in 0 until nLayers) {
+                layerSetup.add(ThreadLocalRandom.current().nextInt(1, 12))
+            }
+            layerSetup.add(nOutput)
         }
-        layerSetup.add(nOutput)
 
         nWeights = (0 until layerSetup.size - 1).sumBy { (1 + layerSetup[it]) * layerSetup[it + 1] }
         val lastLayerIdx = layerSetup.size - 2  // -2 as last is output size
@@ -83,8 +85,9 @@ class Net {
 
     fun crossover(pool: List<Net>, crossoverRate: Double) {
         val mate = pick(pool)
+        val weightsToCrossover = (crossoverRate*nWeights).toInt()
 
-        while (random() < crossoverRate) {
+        for (i in 0 until weightsToCrossover) {
             // Take random weight from random neuron from random layer from mate
             val mateRanLayer = ThreadLocalRandom.current().nextInt(0, mate.layers.size)
             val mateRanNeuron = ThreadLocalRandom.current().nextInt(0, mate.layers[mateRanLayer].neurons.size)
