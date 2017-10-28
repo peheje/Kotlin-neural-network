@@ -22,7 +22,7 @@ fun neuralNetworkRunner() {
     val parentInheritance = 0.6
     val regularizationStrength = 0.02
 
-    val dataset = IrisDataset()
+    val dataset = WineDataset()
     val layerSetup = arrayListOf(dataset.numInputs, 8, 4, 4, dataset.numOutputs)
 
     //val mutatePowers = linspace(0.40, 0.40, 1).toList()
@@ -89,7 +89,7 @@ private fun geneticNeural(poolsize: Long,
     while (Duration.between(starts, Instant.now()).seconds < timeInSeconds) {
         Net.computeWheel(pool)
         val (bxs, bys) = Net.createBatch(dataset, batchSize)
-        val nextGen = Stream.generate { Net.pick(pool) }.parallel().limit(poolsize-1).map {
+        val nextGen = Stream.generate { Net.pick(pool, true) }.parallel().limit(poolsize-1).map {
             if (random() < crossoverProp) it.crossover(pool, crossoverRate)
             if (random() < mutateProp) it.mutate(mutateFreq, mutatePower)
             it.computeFitness(bxs, bys, parentInheritance, gamma)
