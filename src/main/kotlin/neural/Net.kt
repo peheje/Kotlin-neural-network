@@ -8,16 +8,18 @@ class Net {
     private val nWeights: Int
     var fitness: Double = 0.0
 
-    constructor(trainingXs: List<DoubleArray>, trainingYs: List<Int>, layerSetup: List<Int>, parentInheritance: Double, gamma: Double) {
+    constructor(trainingXs: List<DoubleArray>, trainingYs: List<Int>, layerSetup: List<Int>, parentInheritance: Double, gamma: Double, randomArchitecture: Boolean = false) {
 
-        val nInput = layerSetup.first()
-        val nOutput = layerSetup.last()
-        var layerSetup = mutableListOf(nInput)
-        val nLayers = ThreadLocalRandom.current().nextInt(1, 3)
-        for (i in 0 until nLayers) {
-            layerSetup.add(ThreadLocalRandom.current().nextInt(1, 8))
+        var layerSetup = layerSetup.toMutableList()
+        if (randomArchitecture) {
+            val nInput = layerSetup.first()
+            val nOutput = layerSetup.last()
+            val nLayers = ThreadLocalRandom.current().nextInt(1, 3)
+            for (i in 0 until nLayers) {
+                layerSetup.add(ThreadLocalRandom.current().nextInt(1, 12))
+            }
+            layerSetup.add(nOutput)
         }
-        layerSetup.add(nOutput)
 
         nWeights = (0 until layerSetup.size - 1).sumBy { (1 + layerSetup[it]) * layerSetup[it + 1] }
         val lastLayerIdx = layerSetup.size - 2  // -2 as last is output size
@@ -82,9 +84,10 @@ class Net {
     }
 
     fun crossover(pool: List<Net>, crossoverRate: Double) {
-        val mate = pick(pool, false)
+        val mate = pick(pool)
+        val weightsToCrossover = (crossoverRate*nWeights).toInt()
 
-        while (random() < crossoverRate) {
+        for (i in 0 until weightsToCrossover) {
             // Take random weight from random neuron from random layer from mate
             val mateRanLayer = ThreadLocalRandom.current().nextInt(0, mate.layers.size)
             val mateRanNeuron = ThreadLocalRandom.current().nextInt(0, mate.layers[mateRanLayer].neurons.size)
@@ -100,6 +103,25 @@ class Net {
             layers[ranLayer].neurons[ranNeuron].weights[ranWeight] = lerp(layers[ranLayer].neurons[ranNeuron].weights[ranWeight],
                     mate.layers[mateRanLayer].neurons[mateRanNeuron].weights[mateRanWeight], crossoverPower)
         }
+    }
+
+    fun crossover2(pool: List<Net>, crossoverRate: Double) {
+        val mate = pick(pool)
+        for ((layerIdx, layer) in layers.withIndex()) {
+            for ((neuronIdx, neuron) in layer.neurons.withIndex()) {
+                neuron.crossover(mate, layerIdx, neuronIdx, crossoverRate)
+            }
+        }
+    }
+
+    fun crossover3(pool: List<Net>, crossoverRate: Double) {
+        val mate = pick(pool)
+        for (i in 0 until layers.size)
+            if (random() < crossoverRate) {
+                val tmp = layers[i]
+                layers[i] = mate.layers[i]
+                mate.layers[i] = tmp
+            }
     }
 
     fun mutate(mutateFreq: Double, mutatePower: Double) {
@@ -122,15 +144,21 @@ class Net {
             wheel = DoubleArray(pool.size) { i -> sum += pool[i].fitness; sum }
         }
 
-        fun pick(pool: List<Net>, copy: Boolean): Net {
+        fun pick(pool: List<Net>): Net {
             val sum = wheel.last()
             val r = random() * sum
             var idx = wheel.binarySearch(r)
             if (idx < 0) idx = -idx - 1
-            return if (copy) {
-                pool[idx].copy()
-            } else {
-                pool[idx]
+            return pool[idx].copy()
+        }
+
+        fun crossoverAndMutate(net: Net, pool: List<Net>, crossoverProp: Double, crossoverRate: Double, mutateProp: Double, mutateFreq: Double, mutatePower: Double) {
+            val mate = pick(pool)
+            for ((layerIdx, layer) in net.layers.withIndex()) {
+                for ((neuronIdx, neuron) in layer.neurons.withIndex()) {
+                    if (random() < crossoverProp) neuron.crossover(mate, layerIdx, neuronIdx, crossoverRate)
+                    if (random() < mutateProp) neuron.mutate(mutatePower, mutateFreq)
+                }
             }
         }
 
