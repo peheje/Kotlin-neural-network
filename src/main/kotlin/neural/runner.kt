@@ -18,10 +18,10 @@ fun neuralNetworkRunner() {
     val smoothing = 0.0
 
     val crossoverProp = 0.1         // Probability of a net crossing over each generation
-    val crossoverRate = 0.50        // Ratio of number of weights to crossover when crossing over
+    val crossoverRate = 0.05        // Ratio of number of weights to crossover when crossing over
 
     val dataset = WineDataset()
-    val poolsize = 10_000L
+    val poolsize = 5_000L
     val batchSize = Math.max(dataset.numOutputs, 4)
     val parentInheritance = 0.8
     val regularizationStrength = 0.02
@@ -50,7 +50,7 @@ fun neuralNetworkRunner() {
                 gamma = regularizationStrength,
                 plot = true,
                 color = color,
-                timeInSeconds = 60,
+                timeInSeconds = 20,
                 strategy = 0,
                 layerSetup = layerSetup,
                 dataset = dataset,
