@@ -14,9 +14,11 @@ class Net {
         if (randomArchitecture) {
             val nInput = layerSetup.first()
             val nOutput = layerSetup.last()
+            layerSetup.clear()
+            layerSetup.add(nInput)
             val nLayers = ThreadLocalRandom.current().nextInt(1, 3)
             for (i in 0 until nLayers) {
-                layerSetup.add(ThreadLocalRandom.current().nextInt(1, 12))
+                layerSetup.add(ThreadLocalRandom.current().nextInt(2, 10))
             }
             layerSetup.add(nOutput)
         }

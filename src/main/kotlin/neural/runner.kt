@@ -26,6 +26,7 @@ fun neuralNetworkRunner() {
     val parentInheritance = 0.8
     val regularizationStrength = 0.02
 
+    val randomArchitecture = true
     val layerSetup = arrayListOf(dataset.numInputs, 10, 4, dataset.numOutputs)
 
     //val mutatePowers = linspace(0.40, 0.40, 1).toList()
@@ -54,7 +55,8 @@ fun neuralNetworkRunner() {
                 strategy = 0,
                 layerSetup = layerSetup,
                 dataset = dataset,
-                smoothing = smoothing
+                smoothing = smoothing,
+                randomArhictecture = randomArchitecture
         )
     }
 }
@@ -76,7 +78,9 @@ private fun geneticNeural(poolsize: Long,
                           timeInSeconds: Int,
                           strategy: Int,
                           layerSetup: List<Int>,
-                          dataset: Dataset, smoothing: Double) {
+                          dataset: Dataset,
+                          smoothing: Double,
+                          randomArhictecture: Boolean) {
 
     val x = mutableListOf<Double>()
     val y = mutableListOf<Double>()
@@ -90,7 +94,7 @@ private fun geneticNeural(poolsize: Long,
 
     // Algorithm go
     val starts = Instant.now()
-    var pool = Stream.generate { Net(trainingXs, trainingYs, layerSetup, parentInheritance, gamma) }.parallel().limit(poolsize).collect(toList())
+    var pool = Stream.generate { Net(trainingXs, trainingYs, layerSetup, parentInheritance, gamma, randomArhictecture) }.parallel().limit(poolsize).collect(toList())
     while (Duration.between(starts, Instant.now()).seconds < timeInSeconds) {
         Net.computeWheel(pool)
         val (bxs, bys) = Net.createBatch(dataset, batchSize)
