@@ -69,6 +69,7 @@ class Net {
         val dataLoss = (0 until xs.size).sumByDouble { softmaxLoss(xs[it], ys[it]) } / (xs.size + 0.0001)
         val correctFitness = nCorrectPredictions(xs, ys) / (xs.size + 0.0001)
 
+        // Todo check if dataloss does anything
         var batchfitness = correctFitness - regularizationLoss - dataLoss
         batchfitness = Math.max(0.0, batchfitness)
         val parentFitness = fitness

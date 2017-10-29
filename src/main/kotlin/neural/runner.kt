@@ -21,7 +21,7 @@ fun neuralNetworkRunner() {
     val crossoverRate = 0.05        // Ratio of number of weights to crossover when crossing over
 
     val dataset = WineDataset()
-    val poolsize = 5_000L
+    val poolsize = 10_000L
     val batchSize = Math.max(dataset.numOutputs, 4)
     val parentInheritance = 0.8
     val regularizationStrength = 0.02
@@ -120,13 +120,14 @@ private fun geneticNeural(poolsize: Long,
         }
         if (plot) {
             x.add(Duration.between(starts, Instant.now()).toMillis().toDouble())
-            val best = pool.maxBy { it.fitness }?.fitness ?: 0.0
+            val best = pool.maxBy { it.fitness }!!
+
             if (smoothing == 0.0)
-                y.add(best)
+                y.add(dataset.testAccuracy(best, false))
             else {
                 val smoothingN = (smoothing * poolsize).toInt()
                 y.add(yBests.take(smoothingN).sum()/smoothingN)
-                yBests.add(best)
+                yBests.add(best.fitness)
             }
         }
     }
@@ -149,8 +150,13 @@ private fun geneticNeural(poolsize: Long,
         title("Genetic algorithm")
     }
 
+    /*
     val best: Net = pool.maxBy { it.fitness }!!
     dataset.testAccuracy(best)
     println("the best was: $best")
     println("the best had architecture: ${best.architecture()}")
+    */
+
+    val bests: List<Net> = pool.sortedBy { it.fitness }.takeLast(10)
+    dataset.testAccuracy(bests)
 }
