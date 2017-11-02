@@ -30,17 +30,49 @@ interface Dataset {
         }
     }
 
-    fun testAccuracy(best: Net): Double {
+    fun testAccuracy(best: Net, print: Boolean = true): Double {
         var nCorrect = 0
         for ((i, testX) in xsTest.withIndex()) {
             val correct = ysTest[i]
             val neuralGuesses: DoubleArray = best(testX)
             val bestGuess = neuralGuesses.indexOf(neuralGuesses.max()!!)
-            println("Net guess $bestGuess correct $correct")
+
+            if (print)
+                println("Net guess $bestGuess correct $correct")
+
             if (bestGuess == correct) nCorrect++
         }
         val accuracy = nCorrect.toDouble() / xsTest.size
-        println("Correct test-set classifications $nCorrect / ${xsTest.size}")
+        if (print)
+            println("Correct test-set classifications $nCorrect / ${xsTest.size}")
+        return accuracy
+    }
+
+    fun testAccuracy(bestNets: List<Net>, print: Boolean = true): Double {
+
+        var nCorrect = 0
+        for ((i, testX) in xsTest.withIndex()) {
+            val correct = ysTest[i]
+
+            val manyNetGuesses = mutableListOf<Int>()
+            for (net in bestNets) {
+                val guesses: DoubleArray = net(testX)
+                val bestGuess: Int = guesses.indexOf(guesses.max()!!)
+                manyNetGuesses.add(bestGuess)
+            }
+
+            if (print)
+                println("manyNetGuesses ${manyNetGuesses.toList()}")
+            val meanBestGuess = Math.round(manyNetGuesses.average()).toInt()
+            if (meanBestGuess == correct) {
+                nCorrect++
+            }
+            if (print)
+                println("Net guess $meanBestGuess correct $correct")
+        }
+        val accuracy = nCorrect.toDouble() / xsTest.size
+        if (print)
+            println("Correct test-set classifications $nCorrect / ${xsTest.size}")
         return accuracy
     }
 
