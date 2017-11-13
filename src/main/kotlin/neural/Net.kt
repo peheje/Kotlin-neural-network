@@ -1,6 +1,8 @@
 package neural
 
+import jdk.nashorn.internal.ir.Splittable
 import random
+import java.util.*
 import java.util.concurrent.ThreadLocalRandom
 
 class Net {
@@ -55,8 +57,6 @@ class Net {
     }
 
     fun computeFitness(xs: List<DoubleArray>, ys: List<Int>, parentInheritance: Double, gamma: Double) {
-        // Todo move to crossoverAndMutate?
-
         var regularizationLoss = 0.0
         if (gamma != 0.0) {
             for (layer in layers) for (neuron in layer.neurons) for (weight in neuron.weights) {
@@ -108,25 +108,6 @@ class Net {
         }
     }
 
-    fun crossover2(pool: List<Net>, crossoverRate: Double) {
-        val mate = pick(pool)
-        for ((layerIdx, layer) in layers.withIndex()) {
-            for ((neuronIdx, neuron) in layer.neurons.withIndex()) {
-                neuron.crossover(mate, layerIdx, neuronIdx, crossoverRate)
-            }
-        }
-    }
-
-    fun crossover3(pool: List<Net>, crossoverRate: Double) {
-        val mate = pick(pool)
-        for (i in 0 until layers.size)
-            if (random() < crossoverRate) {
-                val tmp = layers[i]
-                layers[i] = mate.layers[i]
-                mate.layers[i] = tmp
-            }
-    }
-
     fun mutate(mutateFreq: Double, mutatePower: Double) {
         for (layer in layers) {
             for (neuron in layer.neurons) {
@@ -153,16 +134,6 @@ class Net {
             var idx = wheel.binarySearch(r)
             if (idx < 0) idx = -idx - 1
             return pool[idx].copy()
-        }
-
-        fun crossoverAndMutate(net: Net, pool: List<Net>, crossoverProp: Double, crossoverRate: Double, mutateProp: Double, mutateFreq: Double, mutatePower: Double) {
-            val mate = pick(pool)
-            for ((layerIdx, layer) in net.layers.withIndex()) {
-                for ((neuronIdx, neuron) in layer.neurons.withIndex()) {
-                    if (random() < crossoverProp) neuron.crossover(mate, layerIdx, neuronIdx, crossoverRate)
-                    if (random() < mutateProp) neuron.mutate(mutatePower, mutateFreq)
-                }
-            }
         }
 
         fun createBatch(dataset: Dataset, batchSize: Int): Pair<List<DoubleArray>, List<Int>> {

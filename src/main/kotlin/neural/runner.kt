@@ -15,7 +15,6 @@ fun neuralNetworkRunner() {
     val mutateFreq = 0.10           // Probability that a weight in a net to be mutated is mutated
     val mutatePower = 0.5           // The power [-mutatePower, mutatePower] of mutation
     val mutatePowerDecay = 1.0      // Decay rate of mutatePower
-    val smoothing = 0.0
 
     val crossoverProp = 0.1         // Probability of a net crossing over each generation
     val crossoverRate = 0.05        // Ratio of number of weights to crossover when crossing over
@@ -26,8 +25,12 @@ fun neuralNetworkRunner() {
     val parentInheritance = 0.8
     val regularizationStrength = 0.02
 
-    val randomArchitecture = true
-    val layerSetup = arrayListOf(dataset.numInputs, 10, 4, dataset.numOutputs)
+    // Graph
+    val showFitness = true
+    val smoothing = 0.0
+
+    val randomArchitecture = false
+    val layerSetup = arrayListOf(dataset.numInputs, 7, 3, dataset.numOutputs)
 
     //val mutatePowers = linspace(0.40, 0.40, 1).toList()
     //val mutateProps = linspace(0.35, 0.35, 1).toList()
@@ -51,12 +54,13 @@ fun neuralNetworkRunner() {
                 gamma = regularizationStrength,
                 plot = true,
                 color = color,
-                timeInSeconds = 20,
+                timeInSeconds = 10,
                 strategy = 0,
                 layerSetup = layerSetup,
                 dataset = dataset,
                 smoothing = smoothing,
-                randomArhictecture = randomArchitecture
+                randomArhictecture = randomArchitecture,
+                showFitness = showFitness
         )
     }
 }
@@ -80,7 +84,8 @@ private fun geneticNeural(poolsize: Long,
                           layerSetup: List<Int>,
                           dataset: Dataset,
                           smoothing: Double,
-                          randomArhictecture: Boolean) {
+                          randomArhictecture: Boolean,
+                          showFitness: Boolean) {
 
     val x = mutableListOf<Double>()
     val y = mutableListOf<Double>()
@@ -107,9 +112,9 @@ private fun geneticNeural(poolsize: Long,
 
         pool = nextGen
 
-        if (mutatePower > 0.10)
+        if (mutatePower > 0.01)
             mutatePower *= mutatePowerDecay
-        if (mutateProp > 0.05)
+        if (mutateProp > 0.01)
             mutateProp *= mutatePropDecay
         // Algorithm end
 
@@ -123,7 +128,10 @@ private fun geneticNeural(poolsize: Long,
             val best = pool.maxBy { it.fitness }!!
 
             if (smoothing == 0.0)
-                y.add(dataset.testAccuracy(best, false))
+                if (showFitness)
+                    y.add(best.fitness)
+                else
+                    y.add(dataset.testAccuracy(best, false))
             else {
                 val smoothingN = (smoothing * poolsize).toInt()
                 y.add(yBests.take(smoothingN).sum()/smoothingN)
