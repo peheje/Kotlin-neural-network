@@ -1,4 +1,4 @@
-# kotlin_genetic_word
+# Kotlin neural network
 Simple genetic algorithm to evolve neural networks. Uses batches of training examples. Iris and Wine dataset.
 
 The folder naming is very confusing sorry. 
